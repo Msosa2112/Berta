@@ -1,5 +1,6 @@
 import React from 'react';
-import { Settings, Check, Globe, ChevronLeft, MapPin, Mic, Award, BookOpen } from 'lucide-react';
+import { Settings, Check, Globe, ChevronLeft, MapPin, Mic, Award, ShieldCheck } from 'lucide-react';
+import { useLanguage, useAutoTranslated } from '../utils/i18n.jsx';
 
 /* ── Social icon button ── */
 const SocialBtn = ({ href, children, title }) => (
@@ -48,6 +49,18 @@ const VDivider = () => (
 
 /* ── Main component ── */
 const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
+  const { lang, tr } = useLanguage();
+  const avatarUrl = profileSettings.avatar || '/berta.jpeg';
+  const heroName = profileSettings.heroName || 'Berta Weyenberg';
+  const locationText = profileSettings.location || 'Louisville, Kentucky';
+  const bioParagraph = useAutoTranslated(
+    profileSettings.bioEs ||
+      'Originaria de Cuba, Berta Polo Weyenberg es educadora galardonada y figura central de la comunidad hispana en Kentucky. A través de sus entrevistas en ConBERTAciones y sus reflexiones bilingües en Under the Umbrella (Bajo la Sombrilla), comparte mensajes de fe, esperanza, educación y propósito.',
+    profileSettings.bioEn ||
+      'Originally from Cuba, Berta Polo Weyenberg is an award-winning educator and central voice in Kentucky’s Hispanic community. Through her interviews on ConBERTAciones and her bilingual reflections on Under the Umbrella (Bajo la Sombrilla), she shares messages of faith, hope, education, and purpose.',
+    lang
+  );
+
   return (
     <div style={{
       display: 'flex',
@@ -61,8 +74,8 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
       {/* ── Hero gradient banner ── */}
       <div style={{
         position: 'relative',
-        height: '160px',
-        background: 'linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #ea7c2e 100%)',
+        height: '165px',
+        background: 'linear-gradient(135deg, #792359 0%, #c026d3 55%, #d97706 100%)',
         flexShrink: 0,
       }}>
         {/* Top bar overlaid on hero */}
@@ -78,37 +91,44 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
           <button
             onClick={onClose}
             style={{
-              background: 'rgba(0,0,0,0.3)',
+              background: 'rgba(0,0,0,0.35)',
               border: 'none',
               borderRadius: '50%',
-              width: '36px',
-              height: '36px',
+              width: '38px',
+              height: '38px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: 'white',
               cursor: 'pointer',
             }}
+            title={tr('Volver', 'Back')}
           >
             <ChevronLeft size={20} />
           </button>
-          <span style={{ color: 'white', fontWeight: 700, fontSize: '1rem' }}>Perfil</span>
+          <span style={{ color: 'white', fontWeight: 700, fontSize: '1rem' }}>
+            {tr('Perfil de Berta', "Berta's Profile")}
+          </span>
           <button
-            onClick={onOpenAdmin}
+            onClick={() => onOpenAdmin('dashboard')}
             style={{
-              background: 'rgba(0,0,0,0.3)',
-              border: 'none',
-              borderRadius: '50%',
-              width: '36px',
-              height: '36px',
+              background: 'rgba(255,255,255,0.22)',
+              border: '1px solid rgba(255,255,255,0.45)',
+              borderRadius: '999px',
+              padding: '6px 14px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              gap: '6px',
               color: 'white',
+              fontWeight: 700,
+              fontSize: '0.8rem',
               cursor: 'pointer',
+              backdropFilter: 'blur(8px)',
             }}
+            title={tr('Abrir Configuración y Panel Admin Unificado', 'Open Settings & Unified Admin Panel')}
           >
-            <Settings size={18} />
+            <Settings size={16} />
+            <span>{tr('Admin / Settings', 'Admin / Settings')}</span>
           </button>
         </div>
       </div>
@@ -124,11 +144,11 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
         padding: '20px',
         zIndex: 5,
         position: 'relative',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
       }}>
 
         {/* Avatar row */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', marginBottom: '14px', flexWrap: 'wrap' }}>
           <div style={{
             width: '88px',
             height: '88px',
@@ -136,14 +156,14 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
             border: '3px solid var(--bg-obsidian)',
             overflow: 'hidden',
             flexShrink: 0,
-            boxShadow: '0 4px 16px rgba(139,92,246,0.4)',
+            boxShadow: '0 4px 16px rgba(121,35,89,0.35)',
           }}>
-            <img src="/berta.jpeg" alt="Berta Weyenberg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={avatarUrl} alt={heroName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
-          <div style={{ paddingBottom: '4px', minWidth: 0 }}>
+          <div style={{ paddingBottom: '4px', minWidth: 0, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
-                Berta Weyenberg
+                {heroName}
               </h2>
               <span style={{
                 width: '18px', height: '18px', borderRadius: '50%',
@@ -159,7 +179,7 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
               <MapPin size={11} color="var(--accent-amber)" />
-              <span>Louisville, Kentucky</span>
+              <span>{locationText}</span>
             </div>
           </div>
         </div>
@@ -168,16 +188,16 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          background: 'rgba(255,255,255,0.04)',
+          background: 'rgba(121,35,89,0.05)',
           borderRadius: '12px',
           padding: '14px 8px',
           marginBottom: '16px',
         }}>
-          <StatBox value="50+" label="Episodios" />
+          <StatBox value={profileSettings.statsEpisodes || '50+'} label={tr('Episodios', 'Episodes')} />
           <VDivider />
-          <StatBox value="12k" label="Comunidad" />
+          <StatBox value={profileSettings.statsCommunity || '12k'} label={tr('Comunidad', 'Community')} />
           <VDivider />
-          <StatBox value="5" label="Temporadas" />
+          <StatBox value={profileSettings.statsSeasons || '5'} label={tr('Temporadas', 'Seasons')} />
         </div>
 
         {/* Social icons */}
@@ -194,26 +214,103 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
           <SocialBtn href={profileSettings.youtube} title="YouTube">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>
           </SocialBtn>
-          <SocialBtn href={profileSettings.website} title="Sitio Web">
+          <SocialBtn href={profileSettings.website} title={tr('Sitio Web', 'Website')}>
             <Globe size={18} />
           </SocialBtn>
         </div>
 
-        {/* Connect button */}
-        <button style={{
-          width: '100%',
-          padding: '12px',
-          background: 'linear-gradient(135deg, #7c3aed, #db2777)',
-          border: 'none',
-          borderRadius: '12px',
-          color: 'white',
-          fontWeight: 700,
-          fontSize: '0.88rem',
-          cursor: 'pointer',
-          letterSpacing: '0.02em',
-        }}>
-          Conectar en Envision Radio
+        {/* Unified Admin Panel primary button inside profile */}
+        <button
+          onClick={() => onOpenAdmin('dashboard')}
+          style={{
+            width: '100%',
+            padding: '13px 16px',
+            background: 'linear-gradient(135deg, #792359, #c026d3)',
+            border: 'none',
+            borderRadius: '14px',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            cursor: 'pointer',
+            letterSpacing: '0.02em',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            boxShadow: '0 8px 20px rgba(121, 35, 89, 0.25)',
+          }}
+        >
+          <Settings size={17} />
+          <span>{tr('Abrir Panel de Administración (Todo en Uno)', 'Open Unified Admin Panel (All-in-One)')}</span>
         </button>
+      </div>
+
+      {/* ── Quick Admin Shortcuts Card ── */}
+      <div style={{
+        margin: '16px 16px 0',
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(24px)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: '20px',
+        padding: '20px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <ShieldCheck size={17} color="var(--accent-purple)" />
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            {tr('Accesos Rápidos de Administración', 'Quick Admin Shortcuts')}
+          </h3>
+        </div>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 0, marginBottom: '14px' }}>
+          {tr(
+            'Gestiona todo el sitio desde un solo lugar: el contenido de Inicio, Blog de Berta, The Weyenberg Statement, ConBERTAciones y Under the Umbrella.',
+            'Manage the entire website from one single place: Home content, Berta’s Blog, The Weyenberg Statement, ConBERTAciones, and Under the Umbrella.'
+          )}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
+          <button
+            onClick={() => onOpenAdmin('inicio')}
+            className="btn-secondary"
+            style={{ padding: '10px 12px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+          >
+            🏠 {tr('Editar Inicio', 'Edit Home')}
+          </button>
+          <button
+            onClick={() => onOpenAdmin('statements')}
+            className="btn-secondary"
+            style={{ padding: '10px 12px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+          >
+            ⚖️ Weyenberg Statement
+          </button>
+          <button
+            onClick={() => onOpenAdmin('noticias')}
+            className="btn-secondary"
+            style={{ padding: '10px 12px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+          >
+            ✍️ {tr('Blog de Berta', "Berta's Blog")}
+          </button>
+          <button
+            onClick={() => onOpenAdmin('episodios')}
+            className="btn-secondary"
+            style={{ padding: '10px 12px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+          >
+            🎙️ ConBERTAciones
+          </button>
+          <button
+            onClick={() => onOpenAdmin('reflexiones')}
+            className="btn-secondary"
+            style={{ padding: '10px 12px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+          >
+            ☂️ Under the Umbrella
+          </button>
+          <button
+            onClick={() => onOpenAdmin('perfil')}
+            className="btn-secondary"
+            style={{ padding: '10px 12px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textAlign: 'left' }}
+          >
+            🌐 {tr('Redes y Perfil', 'Social & Profile')}
+          </button>
+        </div>
       </div>
 
       {/* ── Bio card ── */}
@@ -224,19 +321,20 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
         border: '1px solid var(--glass-border)',
         borderRadius: '20px',
         padding: '20px',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
           <Mic size={16} color="var(--accent-terracotta)" />
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Bio</h3>
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.7, margin: '0 0 10px 0' }}>
-          Originaria de Cuba, Berta Polo Weyenberg se ha consolidado como una educadora galardonada
-          y figura central en la comunidad de Louisville, Kentucky.
+          {bioParagraph}
         </p>
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.7, margin: 0 }}>
-          Como presentadora de <strong style={{ color: 'var(--text-primary)' }}>ConBERTAciones</strong>, su misión es conectar a la comunidad
-          hispana a través de diálogos basados en la fe, la resiliencia y la educación bajo{' '}
+          {tr(
+            'Como presentadora de ConBERTAciones, su misión es conectar a la comunidad hispana a través de diálogos basados en la fe, la resiliencia y la educación bajo ',
+            'As host of ConBERTAciones, her mission is to connect the Hispanic community through dialogues grounded in faith, resilience, and education under '
+          )}
           <em style={{ color: 'var(--accent-purple)', fontStyle: 'normal', fontWeight: 600 }}>
             #WherePraiseMeetsTalk
           </em>.
@@ -251,24 +349,26 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
         border: '1px solid var(--glass-border)',
         borderRadius: '20px',
         padding: '20px',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           <Award size={16} color="var(--accent-amber)" />
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Reconocimientos</h3>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            {tr('Reconocimientos', 'Awards & Recognition')}
+          </h3>
         </div>
         {[
-          { icon: '🏆', text: 'Premio MOSAIC de Impacto Social' },
-          { icon: '🏆', text: 'Premio WLKY Bell Humanitario' },
-          { icon: '🎙️', text: 'Coordinadora de Familias Multilingües – JCPS' },
-          { icon: '📻', text: 'Host en Envision Radio' },
+          { icon: '🏆', text: tr('Premio MOSAIC de Impacto Social', 'MOSAIC Social Impact Award') },
+          { icon: '🏆', text: tr('Premio WLKY Bell Humanitario', 'WLKY Bell Humanitarian Award') },
+          { icon: '🎙️', text: tr('Coordinadora de Familias Multilingües – JCPS', 'Multilingual Family Coordinator – JCPS') },
+          { icon: '📻', text: tr('Host de ConBERTAciones & Under the Umbrella', 'Host of ConBERTAciones & Under the Umbrella') },
         ].map((item, i) => (
           <div key={i} style={{
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
             padding: '10px 12px',
-            background: 'rgba(255,255,255,0.04)',
+            background: 'rgba(121,35,89,0.04)',
             borderRadius: '10px',
             marginBottom: i < 3 ? '8px' : 0,
           }}>
@@ -277,32 +377,6 @@ const ProfileView = ({ onOpenAdmin, profileSettings = {}, onClose }) => {
           </div>
         ))}
       </div>
-
-      {/* ── Admin shortcut ── */}
-      <div style={{ margin: '16px 16px 0' }}>
-        <button
-          onClick={onOpenAdmin}
-          style={{
-            width: '100%',
-            padding: '14px',
-            background: 'rgba(139,92,246,0.1)',
-            border: '1px dashed rgba(139,92,246,0.3)',
-            borderRadius: '14px',
-            color: 'var(--accent-purple)',
-            fontWeight: 600,
-            fontSize: '0.88rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-          }}
-        >
-          <Settings size={16} />
-          Panel de Administración
-        </button>
-      </div>
-
     </div>
   );
 };

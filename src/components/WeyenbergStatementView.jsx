@@ -567,32 +567,11 @@ const WeyenbergStatementView = ({
               )}
             </p>
           </div>
-
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setIsAdminOpen(!isAdminOpen)}
-              className="btn-secondary"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 16px',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                borderColor: isAdminOpen ? 'var(--accent-purple)' : 'var(--glass-border)',
-                color: isAdminOpen ? 'var(--accent-purple)' : 'var(--text-primary)',
-              }}
-            >
-              <Lock size={14} />
-              <span>{isAdminOpen ? tr('Cerrar Panel Admin', 'Close Admin Panel') : tr('Administrar Statements', 'Manage Statements')}</span>
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* ── DEDICATED MINI ADMIN PANEL FOR THE WEYENBERG STATEMENT ── */}
-      {isAdminOpen && (
+      {/* ── DEDICATED MINI ADMIN PANEL (Unified in Profile Settings -> Admin) ── */}
+      {false && isAdminOpen && (
         <section style={{ marginBottom: '44px' }}>
           <div
             className="glass-card glow-purple"

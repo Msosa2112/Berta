@@ -764,6 +764,11 @@ function App() {
   const openArticle = (article) => { setActiveArticle(article); navigate('article'); };
   const closeArticle = () => setCurrentView('noticias');
   const openProfile = () => navigate('profile');
+  const [adminInitialSection, setAdminInitialSection] = useState('dashboard');
+  const openAdminSection = (section = 'dashboard') => {
+    setAdminInitialSection(typeof section === 'string' ? section : 'dashboard');
+    navigate('admin');
+  };
 
   // Simulated player ticking (only runs when there is no real audio playing)
   useEffect(() => {
@@ -976,6 +981,7 @@ function App() {
               reflections={reflections}
               noticias={noticias}
               statements={statements}
+              profileSettings={profileSettings}
               onPlay={openPlayer}
               onOpenPlaylist={openPlaylist}
               onOpenReflection={openReflection}
@@ -1072,24 +1078,40 @@ function App() {
             />
           )}
           {currentView === 'profile' && (
-            <ProfileView onOpenAdmin={() => navigate('admin')}
-              profileSettings={profileSettings} onClose={goBack} />
+            <ProfileView
+              onOpenAdmin={openAdminSection}
+              profileSettings={profileSettings}
+              onClose={goBack}
+            />
           )}
           {currentView === 'admin' && (
             <AdminView
-              episodes={episodes} guests={guests} profileSettings={profileSettings}
-              onUpdateProfile={handleUpdateProfile} reflections={reflections}
+              initialSection={adminInitialSection}
+              episodes={episodes}
+              guests={guests}
+              profileSettings={profileSettings}
+              onUpdateProfile={handleUpdateProfile}
+              reflections={reflections}
               onUpdateReflections={handleUpdateReflections}
               noticias={noticias}
               onAddNoticia={handleAddNoticia}
               onUpdateNoticia={handleUpdateNoticia}
               onDeleteNoticia={handleDeleteNoticia}
+              statements={statements}
+              onAddStatement={handleAddStatement}
+              onUpdateStatement={handleUpdateStatement}
+              onDeleteStatement={handleDeleteStatement}
               onImportBackup={handleImportBackup}
-              onAdd={addEpisode} onUpdate={updateEpisode} onDelete={deleteEpisode}
-              onAddGuest={addGuest} onUpdateGuest={updateGuest} onDeleteGuest={deleteGuest}
+              onAdd={addEpisode}
+              onUpdate={updateEpisode}
+              onDelete={deleteEpisode}
+              onAddGuest={addGuest}
+              onUpdateGuest={updateGuest}
+              onDeleteGuest={deleteGuest}
               onSyncSpotify={() => handleSyncSpotify(false)}
               isSyncingSpotify={isSyncingSpotify}
-              onClose={() => setCurrentView('profile')} triggerToast={triggerToast}
+              onClose={() => setCurrentView('profile')}
+              triggerToast={triggerToast}
             />
           )}
         </main>

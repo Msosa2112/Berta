@@ -558,29 +558,11 @@ const NoticiasView = ({
               )}
             </p>
           </div>
-
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <button
-              className={isAdminOpen ? 'btn-primary' : 'btn-secondary'}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 18px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-              }}
-              onClick={() => setIsAdminOpen(!isAdminOpen)}
-            >
-              <Lock size={14} />
-              <span>{isAdminOpen ? tr('Cerrar Panel del Blog', 'Close Blog Panel') : tr('Administrar Blog', 'Manage Blog')}</span>
-            </button>
-          </div>
         </div>
       </header>
 
-      {/* ── Dedicated Mini-Admin Panel for Berta's Blog ── */}
-      {isAdminOpen && (
+      {/* ── Dedicated Mini-Admin Panel (Unified in Profile Settings -> Admin) ── */}
+      {false && isAdminOpen && (
         <div
           className="glass-card"
           style={{

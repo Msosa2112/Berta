@@ -1,103 +1,518 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Menu, X, Eye, EyeOff, Plus, Edit2, Trash2, 
-  UploadCloud, Link as LinkIcon, CheckCircle, 
-  AlertTriangle, XCircle, Download, Upload, 
-  Bold, Italic, Underline, List as ListIcon, 
-  Home, Mic, BookOpen, Briefcase, User, Save,
-  LayoutDashboard, LogOut, Newspaper
+import {
+  Menu,
+  X,
+  Eye,
+  EyeOff,
+  Plus,
+  Edit2,
+  Trash2,
+  UploadCloud,
+  Link as LinkIcon,
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  Download,
+  Upload,
+  Home,
+  Mic,
+  BookOpen,
+  Briefcase,
+  User,
+  Save,
+  LayoutDashboard,
+  LogOut,
+  Scale,
+  PenTool,
+  Award,
+  MessageSquare,
+  Image as ImageIcon,
+  Lock,
+  Sparkles,
+  ChevronLeft,
+  Calendar,
 } from 'lucide-react';
 
-const AdminView = ({ 
-  episodes, guests, profileSettings, onUpdateProfile,
-  reflections, onUpdateReflections,
-  noticias, onAddNoticia, onUpdateNoticia, onDeleteNoticia,
+const STATEMENT_CATEGORIES = [
+  'Actualidad & Fe',
+  'Familia & Sociedad',
+  'Cultura & Verdad Bíblica',
+  'Educación & Valores',
+];
+
+const BLOG_CATEGORIES = [
+  'Fe & Esperanza',
+  'Familia & Educación',
+  'Reflexiones',
+  'Vida & Propósito',
+  'Comunidad',
+];
+
+const stripHtml = (html = '') =>
+  html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+
+const formatParagraphsToHtml = (text = '') => {
+  if (!text) return '';
+  if (text.includes('<p>') || text.includes('<h3>') || text.includes('<blockquote>')) {
+    return text;
+  }
+  return text
+    .split(/\n+/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p>${p}</p>`)
+    .join('');
+};
+
+const htmlToPlainText = (html = '') => {
+  if (!html) return '';
+  return html
+    .replace(/<\/p>\s*<p>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+};
+
+const DEFAULT_HOME_SETTINGS = {
+  avatar: '/berta.jpeg',
+  heroName: 'Berta Weyenberg',
+  heroRoleEs: 'Host de ConBERTAciones · Reflexiones & Conferencista',
+  heroRoleEn: 'Host of ConBERTAciones · Reflections & Public Speaker',
+  location: 'Louisville, Kentucky',
+  contactEmail: 'info@conbertaciones.com',
+  bioEs:
+    'Originaria de Cuba, Berta Polo Weyenberg es educadora galardonada y figura central de la comunidad hispana en Kentucky. A través de sus entrevistas en ConBERTAciones y sus reflexiones bilingües en Under the Umbrella (Bajo la Sombrilla), comparte mensajes de fe, esperanza, educación y propósito.',
+  bioEn:
+    'Originally from Cuba, Berta Polo Weyenberg is an award-winning educator and central voice in Kentucky’s Hispanic community. Through her interviews on ConBERTAciones and her bilingual reflections on Under the Umbrella (Bajo la Sombrilla), she shares messages of faith, hope, education, and purpose.',
+  spacesTitleEs: 'Dos espacios pensados para ti:',
+  spacesTitleEn: 'Two spaces designed for you:',
+  space1DescEs: 'nuestro espacio de entrevistas profundas y conversaciones con invitados especiales.',
+  space1DescEn: 'our space for in-depth interviews and meaningful conversations with special guests.',
+  space2DescEs: 'cápsulas y reflexiones cortas en Español e Inglés para inspirar tu día a día.',
+  space2DescEn: 'short capsules and reflections in Spanish and English to inspire your everyday life.',
+  cardPodcastTitleEs: 'ConBERTAciones · Entrevistas',
+  cardPodcastTitleEn: 'ConBERTAciones · Interviews',
+  cardPodcastDescEs: '',
+  cardPodcastDescEn: '',
+  cardUmbrellaTitleEs: 'Under the Umbrella · Reflexiones',
+  cardUmbrellaTitleEn: 'Under the Umbrella · Reflections',
+  cardUmbrellaDescEs: '',
+  cardUmbrellaDescEn: '',
+  cardSpeakerTitleEs: 'Agenda una Charla',
+  cardSpeakerTitleEn: 'Book a Speaking Event',
+  cardSpeakerDescEs: 'Invita a Berta como conferencista para tu escuela, grupo de fe o empresa.',
+  cardSpeakerDescEn: 'Invite Berta as a speaker for your school, faith group, or company.',
+  speakerBullet1Es: 'Educación de estudiantes e hijos',
+  speakerBullet1En: 'Student & parenting education',
+  speakerBullet2Es: 'Grupos de damas y grupos de fe',
+  speakerBullet2En: "Women's ministries & faith groups",
+  speakerBullet3Es: 'Mensaje alentador para empresas',
+  speakerBullet3En: 'Encouraging message for companies',
+  cardStatementTitle: 'The Weyenberg Statement',
+  cardStatementDescEs:
+    'Statements de la familia Weyenberg basados en conceptos bíblicos, analizando fenómenos de la actualidad con un lente bíblico.',
+  cardStatementDescEn:
+    'Statements by the Weyenberg family grounded in biblical concepts, analyzing current phenomena through a biblical lens.',
+  cardBlogTitleEs: 'Blog de Berta · Reflexiones',
+  cardBlogTitleEn: "Berta's Blog · Reflections",
+  cardBlogDescEs:
+    'Reflexiones escritas, enseñanzas para la familia y galerías de imágenes compartidas por Berta.',
+  cardBlogDescEn:
+    'Written reflections, family teachings, and image galleries shared by Berta.',
+  cardConectaTitleEs: 'Conecta con Berta',
+  cardConectaTitleEn: 'Connect with Berta',
+  cardConectaDescEs:
+    'Envía tus preguntas para el segmento Dame La Letra, comparte tu testimonio o agenda una conferencia.',
+  cardConectaDescEn:
+    'Send your questions for the Dame La Letra segment, share your testimony, or book a speaking event.',
+  statsEpisodes: '50+',
+  statsCommunity: '12k',
+  statsSeasons: '5',
+};
+
+const AdminView = ({
+  initialSection = 'dashboard',
+  episodes = [],
+  guests = [],
+  profileSettings = {},
+  onUpdateProfile,
+  reflections = [],
+  onUpdateReflections,
+  noticias = [],
+  onAddNoticia,
+  onUpdateNoticia,
+  onDeleteNoticia,
+  statements = [],
+  onAddStatement,
+  onUpdateStatement,
+  onDeleteStatement,
   onImportBackup,
-  onAdd, onUpdate, onDelete, 
-  onAddGuest, onUpdateGuest, onDeleteGuest, 
-  onSyncSpotify, isSyncingSpotify,
-  onClose, triggerToast
+  onAdd,
+  onUpdate,
+  onDelete,
+  onAddGuest,
+  onUpdateGuest,
+  onDeleteGuest,
+  onSyncSpotify,
+  isSyncingSpotify,
+  onClose,
+  triggerToast,
 }) => {
-  // --- STATE ---
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // --- AUTH STATE ---
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return sessionStorage.getItem('weyenberg_admin_auth') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [loginForm, setLoginForm] = useState({ user: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeMenu, setActiveMenu] = useState('dashboard'); // dashboard, episodios, reflexiones, noticias, negocios, perfil, backup
-  
-  const [editingEp, setEditingEp] = useState(null); 
+  const [activeMenu, setActiveMenu] = useState(initialSection || 'dashboard');
+
+  useEffect(() => {
+    if (initialSection) setActiveMenu(initialSection);
+  }, [initialSection]);
+
+  // --- EDITING STATES ---
+  const [editingEp, setEditingEp] = useState(null);
+  const [editingReflection, setEditingReflection] = useState(null);
   const [editingGuest, setEditingGuest] = useState(null);
   const [editingNoticia, setEditingNoticia] = useState(null);
-  
-  const [formData, setFormData] = useState({ id: '', title: '', host: '', duration: '', color: 'purple', art: '', audioUrl: '', audioFile: null, audioFileName: '', description: '' });
-  const [guestData, setGuestData] = useState({ id: '', name: '', business: '', bio: '', bgPhoto: '', facebook: '', instagram: '', linkedin: '', youtube: '', website: '' });
-  const [noticiaData, setNoticiaData] = useState({ id: '', tipo: 'noticia', titulo: '', excerpt: '', contenido: '', imagen: '', categoria: 'Comunidad', autor: 'Berta Weyenberg', fecha: '', lectura: 3 });
-  
-  // Reflection Editing State (Uses the first element for the MVP)
-  const [reflectionData, setReflectionData] = useState(reflections[0] || { id: '1', titleEn: '', titleEs: '', contentEn: '', contentEs: '', videoEn: '', videoEs: '', thumbnail: '' });
-  
-  const [localProfile, setLocalProfile] = useState(profileSettings || { facebook: '', instagram: '', linkedin: '', youtube: '', website: '' });
-  
-  // Custom Toast State
-  const [adminToast, setAdminToast] = useState(null); // { message, type: 'success' | 'error' | 'warning' }
+  const [editingStatement, setEditingStatement] = useState(null);
+
+  // Forms
+  const [formData, setFormData] = useState({
+    id: '',
+    title: '',
+    host: 'Berta Weyenberg',
+    duration: '0:00',
+    color: 'purple',
+    art: '',
+    audioUrl: '',
+    spotifyUrl: '',
+    audioFile: null,
+    audioFileName: '',
+    description: '',
+    releaseDate: new Date().toISOString().split('T')[0],
+  });
+
+  const [reflectionForm, setReflectionForm] = useState({
+    id: '',
+    titleEs: '',
+    titleEn: '',
+    contentEsRaw: '',
+    contentEnRaw: '',
+    audioEs: '',
+    audioEn: '',
+    durationEs: '3:00',
+    durationEn: '3:00',
+    spotifyUrlEs: '',
+    spotifyUrlEn: '',
+    videoEs: '',
+    videoEn: '',
+    thumbnail: '/cover_art_games.png',
+    releaseDate: new Date().toISOString().split('T')[0],
+  });
+
+  const [guestData, setGuestData] = useState({
+    id: '',
+    name: '',
+    business: '',
+    businessEn: '',
+    bio: '',
+    bioEn: '',
+    bgPhoto: '',
+    facebook: '',
+    instagram: '',
+    linkedin: '',
+    youtube: '',
+    website: '',
+  });
+
+  const [noticiaData, setNoticiaData] = useState({
+    id: '',
+    tipo: 'blog',
+    titulo: '',
+    fraseDestacada: '',
+    excerpt: '',
+    contenidoRaw: '',
+    imagen: '/berta.jpeg',
+    galeria: [],
+    categoria: 'Fe & Esperanza',
+    autor: 'Berta Weyenberg',
+    fecha: new Date().toISOString().split('T')[0],
+    lectura: 4,
+  });
+
+  const [statementData, setStatementData] = useState({
+    id: '',
+    titulo: '',
+    categoria: 'Actualidad & Fe',
+    versiculo: '',
+    autor: 'Familia Weyenberg',
+    fecha: new Date().toISOString().split('T')[0],
+    resumen: '',
+    contenidoRaw: '',
+    imagen: '/berta.jpeg',
+    imagenes: [],
+    facebookUrl: '',
+  });
+
+  // Home & Profile Settings Form
+  const [localProfile, setLocalProfile] = useState(() => ({
+    ...DEFAULT_HOME_SETTINGS,
+    facebook: '',
+    instagram: '',
+    linkedin: '',
+    youtube: '',
+    website: '',
+    ...profileSettings,
+  }));
+
+  useEffect(() => {
+    setLocalProfile(prev => ({
+      ...DEFAULT_HOME_SETTINGS,
+      ...prev,
+      ...profileSettings,
+    }));
+  }, [profileSettings]);
+
+  // Community Inbox (Bookings + Dame La Letra)
+  const [speakerBookings, setSpeakerBookings] = useState([]);
+  const [dameSubmissions, setDameSubmissions] = useState([]);
+
+  useEffect(() => {
+    try {
+      setSpeakerBookings(JSON.parse(localStorage.getItem('berta_speaker_bookings') || '[]'));
+    } catch {}
+    try {
+      setDameSubmissions(JSON.parse(localStorage.getItem('dame_la_letra_submissions') || '[]'));
+    } catch {}
+  }, [activeMenu]);
+
+  // Toast
+  const [adminToast, setAdminToast] = useState(null);
   const triggerAdminToast = (message, type = 'success') => {
     setAdminToast({ message, type });
+    if (triggerToast) triggerToast(message);
     setTimeout(() => setAdminToast(null), 3000);
   };
 
-  // --- HANDLERS ---
+  // --- LOGIN / LOGOUT ---
   const handleLogin = (e) => {
     e.preventDefault();
-    if (loginForm.user === 'admin' && loginForm.password === 'berta') {
+    const u = loginForm.user.trim().toLowerCase();
+    const p = loginForm.password.trim();
+    if (
+      (u === 'weyenberg' && p === 'statement2026') ||
+      (u === 'admin' && (p === 'berta' || p === 'statement2026')) ||
+      (u === 'berta' && (p === 'berta' || p === 'statement2026'))
+    ) {
       setIsAuthenticated(true);
-      triggerAdminToast('Bienvenida, Berta', 'success');
+      try {
+        sessionStorage.setItem('weyenberg_admin_auth', 'true');
+      } catch {}
+      triggerAdminToast('¡Bienvenida al Panel de Administración, Berta!', 'success');
     } else {
-      triggerAdminToast('Credenciales incorrectas', 'error');
+      triggerAdminToast('Usuario o contraseña incorrectos', 'error');
     }
   };
 
-  const handleImageUpload = (e, target) => {
-    const file = e.files ? e.files[0] : e.target.files[0];
-    if (file) {
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    try {
+      sessionStorage.removeItem('weyenberg_admin_auth');
+    } catch {}
+    if (onClose) onClose();
+  };
+
+  // --- IMAGE UPLOAD HELPERS ---
+  const handleSingleImageUpload = (e, callback) => {
+    const file = e.files ? e.files[0] : e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      callback(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMultipleImagesUpload = (e, callback) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        if (target === 'ep') setFormData({ ...formData, art: reader.result });
-        if (target === 'guest') setGuestData({ ...guestData, bgPhoto: reader.result });
-        if (target === 'reflection') setReflectionData({ ...reflectionData, thumbnail: reader.result });
+        callback(reader.result);
       };
       reader.readAsDataURL(file);
+    });
+  };
+
+  // --- SAVE HANDLERS ---
+  const handleSaveHomeAndProfile = async (e) => {
+    if (e) e.preventDefault();
+    await onUpdateProfile(localProfile);
+    triggerAdminToast('¡Contenido de Inicio y Perfil actualizado con éxito!', 'success');
+  };
+
+  const handleResetHomeDefaults = async () => {
+    if (window.confirm('¿Deseas restaurar los textos de Inicio a sus valores originales?')) {
+      const reset = {
+        ...localProfile,
+        ...DEFAULT_HOME_SETTINGS,
+      };
+      setLocalProfile(reset);
+      await onUpdateProfile(reset);
+      triggerAdminToast('Textos de Inicio restaurados a los valores por defecto', 'success');
     }
+  };
+
+  const handleSaveStatement = async (e) => {
+    e.preventDefault();
+    if (!statementData.titulo.trim() || !statementData.contenidoRaw.trim()) {
+      return triggerAdminToast('Por favor ingresa el título y el contenido del Statement', 'warning');
+    }
+    const htmlContent = formatParagraphsToHtml(statementData.contenidoRaw);
+    const autoResumen = statementData.resumen.trim() || stripHtml(htmlContent).substring(0, 170) + '...';
+    const payload = {
+      id: editingStatement === 'new' ? 'ws_' + Date.now().toString() : editingStatement,
+      titulo: statementData.titulo.trim(),
+      categoria: statementData.categoria,
+      versiculo: statementData.versiculo.trim(),
+      autor: statementData.autor.trim() || 'Familia Weyenberg',
+      fecha: statementData.fecha || new Date().toISOString().split('T')[0],
+      resumen: autoResumen,
+      contenido: htmlContent,
+      imagen: statementData.imagen || '/berta.jpeg',
+      imagenes: statementData.imagenes || [],
+      facebookUrl: statementData.facebookUrl.trim(),
+    };
+    if (editingStatement === 'new') {
+      if (onAddStatement) await onAddStatement(payload);
+      triggerAdminToast('¡Nuevo Statement publicado!', 'success');
+    } else {
+      if (onUpdateStatement) await onUpdateStatement(payload);
+      triggerAdminToast('¡Statement actualizado!', 'success');
+    }
+    setEditingStatement(null);
+  };
+
+  const handleSaveBlog = async (e) => {
+    e.preventDefault();
+    if (!noticiaData.titulo.trim() || !noticiaData.contenidoRaw.trim()) {
+      return triggerAdminToast('Título y contenido de la reflexión son obligatorios', 'warning');
+    }
+    const htmlContent = formatParagraphsToHtml(noticiaData.contenidoRaw);
+    const autoExcerpt = noticiaData.excerpt.trim() || stripHtml(htmlContent).substring(0, 160) + '...';
+    const payload = {
+      id: editingNoticia === 'new' ? 'b_' + Date.now().toString() : editingNoticia,
+      tipo: 'blog',
+      titulo: noticiaData.titulo.trim(),
+      categoria: noticiaData.categoria || 'Reflexiones',
+      fraseDestacada: noticiaData.fraseDestacada.trim(),
+      autor: noticiaData.autor.trim() || 'Berta Weyenberg',
+      fecha: noticiaData.fecha || new Date().toISOString().split('T')[0],
+      excerpt: autoExcerpt,
+      contenido: htmlContent,
+      imagen: noticiaData.imagen || '/berta.jpeg',
+      galeria: noticiaData.galeria || [],
+      lectura: Number(noticiaData.lectura) || 4,
+    };
+    if (editingNoticia === 'new') {
+      if (onAddNoticia) await onAddNoticia(payload);
+      triggerAdminToast('¡Reflexión publicada en el Blog de Berta!', 'success');
+    } else {
+      if (onUpdateNoticia) await onUpdateNoticia(payload);
+      triggerAdminToast('¡Reflexión del Blog actualizada!', 'success');
+    }
+    setEditingNoticia(null);
   };
 
   const handleSaveEp = (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.host) return triggerAdminToast('Título e Invitado son requeridos', 'warning');
-    if (editingEp === 'new') { onAdd({ ...formData, id: Date.now().toString() }); triggerAdminToast('Episodio Añadido', 'success'); } 
-    else { onUpdate(formData); triggerAdminToast('Episodio Actualizado', 'success'); }
+    if (!formData.title || !formData.host) {
+      return triggerAdminToast('Título e Invitado son requeridos', 'warning');
+    }
+    if (editingEp === 'new') {
+      onAdd({ ...formData, id: Date.now().toString() });
+      triggerAdminToast('Entrevista añadida', 'success');
+    } else {
+      onUpdate(formData);
+      triggerAdminToast('Entrevista actualizada', 'success');
+    }
     setEditingEp(null);
+  };
+
+  const handleSaveReflectionItem = async (e) => {
+    e.preventDefault();
+    if (!reflectionForm.titleEs && !reflectionForm.titleEn) {
+      return triggerAdminToast('Ingresa al menos un título en Español o Inglés', 'warning');
+    }
+    const payload = {
+      id: editingReflection === 'new' ? 'ref_' + Date.now().toString() : editingReflection,
+      titleEs: reflectionForm.titleEs.trim(),
+      titleEn: reflectionForm.titleEn.trim(),
+      contentEs: formatParagraphsToHtml(reflectionForm.contentEsRaw),
+      contentEn: formatParagraphsToHtml(reflectionForm.contentEnRaw),
+      rawEs: reflectionForm.contentEsRaw.trim(),
+      rawEn: reflectionForm.contentEnRaw.trim(),
+      audioEs: reflectionForm.audioEs.trim(),
+      audioEn: reflectionForm.audioEn.trim(),
+      durationEs: reflectionForm.durationEs || '3:00',
+      durationEn: reflectionForm.durationEn || '3:00',
+      spotifyUrlEs: reflectionForm.spotifyUrlEs.trim(),
+      spotifyUrlEn: reflectionForm.spotifyUrlEn.trim(),
+      videoEs: reflectionForm.videoEs.trim(),
+      videoEn: reflectionForm.videoEn.trim(),
+      thumbnail: reflectionForm.thumbnail || '/cover_art_games.png',
+      releaseDate: reflectionForm.releaseDate || new Date().toISOString().split('T')[0],
+    };
+
+    let updatedList;
+    if (editingReflection === 'new') {
+      updatedList = [payload, ...reflections];
+    } else {
+      updatedList = reflections.map(r => (r.id === payload.id ? { ...r, ...payload } : r));
+    }
+    await onUpdateReflections(updatedList);
+    triggerAdminToast('¡Reflexión de Under the Umbrella guardada!', 'success');
+    setEditingReflection(null);
+  };
+
+  const handleDeleteReflectionItem = async (id) => {
+    if (window.confirm('¿Eliminar esta reflexión de Under the Umbrella?')) {
+      const updatedList = reflections.filter(r => r.id !== id);
+      await onUpdateReflections(updatedList);
+      triggerAdminToast('Reflexión eliminada', 'error');
+    }
   };
 
   const handleSaveGuest = (e) => {
     e.preventDefault();
-    if (!guestData.name) return triggerAdminToast('Nombre es requerido', 'warning');
-    if (editingGuest === 'new') { onAddGuest({ ...guestData, id: 'g_' + Date.now().toString() }); triggerAdminToast('Invitado Añadido', 'success'); }
-    else { onUpdateGuest(guestData); triggerAdminToast('Invitado Actualizado', 'success'); }
+    if (!guestData.name) return triggerAdminToast('El nombre del invitado es obligatorio', 'warning');
+    if (editingGuest === 'new') {
+      onAddGuest({ ...guestData, id: 'g_' + Date.now().toString() });
+      triggerAdminToast('Invitado añadido', 'success');
+    } else {
+      onUpdateGuest(guestData);
+      triggerAdminToast('Invitado actualizado', 'success');
+    }
     setEditingGuest(null);
-  };
-
-  const handleSaveReflection = () => {
-    // For MVPs: we just update the first item in the reflections array
-    const updatedArray = [...reflections];
-    updatedArray[0] = reflectionData;
-    onUpdateReflections(updatedArray);
-    triggerAdminToast('Tus listas de YouTube han sido actualizadas', 'success');
   };
 
   const executeBackup = () => {
     const serializableEpisodes = episodes.map(({ audioFile, ...rest }) => rest);
     const data = {
-      episodes: serializableEpisodes, guests, profileSettings, reflections, noticias
+      episodes: serializableEpisodes,
+      guests,
+      profileSettings: localProfile,
+      reflections,
+      noticias,
+      statements,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -105,127 +520,746 @@ const AdminView = ({
     a.href = url;
     a.download = `conbertaciones_backup_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
-    triggerAdminToast('Backup descargado (excluye archivos de audio locales)', 'success');
+    triggerAdminToast('Copia de seguridad completa descargada', 'success');
   };
 
-  // --- UI RENDERERS ---
-  if (!isAuthenticated) return (
-    <div className="admin-login-layout">
-      <AdminStyles />
-      <div className="admin-login-card">
-        <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: '24px' }}>ConBERTAciones Admin</h1>
-        <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: '16px' }}>
-            <label className="admin-label">Usuario o Correo</label>
-            <input type="text" className="admin-input" value={loginForm.user} onChange={e => setLoginForm({...loginForm, user: e.target.value})} placeholder="Ej. admin" />
+  const navSections = [
+    { id: 'dashboard', label: 'Resumen General', icon: <LayoutDashboard size={18} /> },
+    { id: 'inicio', label: 'Contenido de Inicio', icon: <Home size={18} /> },
+    { id: 'statements', label: 'The Weyenberg Statement', icon: <Scale size={18} /> },
+    { id: 'noticias', label: 'Blog de Berta', icon: <PenTool size={18} /> },
+    { id: 'episodios', label: 'ConBERTAciones (Entrevistas)', icon: <Mic size={18} /> },
+    { id: 'reflexiones', label: 'Under the Umbrella', icon: <BookOpen size={18} /> },
+    { id: 'negocios', label: 'Invitados del Podcast', icon: <User size={18} /> },
+    { id: 'comunidad', label: 'Charlas & Dame La Letra', icon: <MessageSquare size={18} /> },
+    { id: 'perfil', label: 'Perfil & Redes Sociales', icon: <Briefcase size={18} /> },
+    { id: 'backup', label: 'Respaldos (Backup)', icon: <Save size={18} /> },
+  ];
+
+  // --- LOGIN SCREEN ---
+  if (!isAuthenticated) {
+    return (
+      <div className="admin-login-layout">
+        <AdminStyles />
+        <div className="admin-login-card">
+          <div style={{ textAlign: 'center', marginBottom: '22px' }}>
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #792359, #c026d3)',
+                color: '#fff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '12px',
+                boxShadow: '0 8px 20px rgba(121, 35, 89, 0.25)',
+              }}
+            >
+              <Lock size={24} />
+            </div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#1F2937', margin: '0 0 6px 0' }}>
+              ConBERTAciones · Admin
+            </h1>
+            <p style={{ fontSize: '0.86rem', color: '#6B7280', margin: 0 }}>
+              Panel unificado para administrar Inicio, Blog, The Weyenberg Statement, Podcast y Perfil.
+            </p>
           </div>
-          <div style={{ marginBottom: '24px', position: 'relative' }}>
-            <label className="admin-label">Contraseña</label>
-            <input type={showPassword ? 'text' : 'password'} className="admin-input" value={loginForm.password} onChange={e => setLoginForm({...loginForm, password: e.target.value})} placeholder="••••••" />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '12px', top: '34px', background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}>
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '16px' }}>
+              <label className="admin-label">Usuario</label>
+              <input
+                type="text"
+                required
+                className="admin-input"
+                value={loginForm.user}
+                onChange={e => setLoginForm({ ...loginForm, user: e.target.value })}
+                placeholder="weyenberg o admin"
+              />
+            </div>
+            <div style={{ marginBottom: '22px', position: 'relative' }}>
+              <label className="admin-label">Contraseña</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                className="admin-input"
+                value={loginForm.password}
+                onChange={e => setLoginForm({ ...loginForm, password: e.target.value })}
+                placeholder="••••••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '34px',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#9CA3AF',
+                }}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            <button type="submit" className="admin-btn-primary">
+              Entrar al Panel de Administración
             </button>
-          </div>
-          <button type="submit" className="admin-btn-primary">Ingresar</button>
-        </form>
+            <button
+              type="button"
+              onClick={onClose}
+              className="admin-btn-secondary"
+              style={{ width: '100%', marginTop: '10px' }}
+            >
+              Volver al Perfil
+            </button>
+          </form>
+        </div>
+        {adminToast && <Toast message={adminToast.message} type={adminToast.type} />}
       </div>
-      {/* TOAST SYSTEM (Shared) */}
-      {adminToast && <Toast message={adminToast.message} type={adminToast.type} />}
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="admin-app-layout">
       <AdminStyles />
+
       {/* 1. TOP HEADER */}
       <header className="admin-header">
-        <button onClick={() => setIsSidebarOpen(true)} className="admin-icon-btn"><Menu size={24} color="#4B5563" /></button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button onClick={() => setIsSidebarOpen(true)} className="admin-icon-btn" title="Menú de secciones">
+            <Menu size={22} color="#792359" />
+          </button>
+          <button
+            onClick={onClose}
+            className="admin-btn-secondary"
+            style={{ height: '36px', padding: '0 12px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}
+          >
+            <ChevronLeft size={16} /> Volver al Sitio
+          </button>
+        </div>
+
         <span className="admin-header-title">
-          {activeMenu === 'dashboard' && 'Dashboard'}
-          {activeMenu === 'episodios' && 'Episodios'}
-          {activeMenu === 'reflexiones' && 'Under the Umbrella'}
-          {activeMenu === 'noticias' && 'Noticias & Blog'}
-          {activeMenu === 'negocios' && 'Directorio'}
-          {activeMenu === 'perfil' && 'Perfil'}
-          {activeMenu === 'backup' && 'Respaldos'}
+          {navSections.find(s => s.id === activeMenu)?.label || 'Panel de Administración'}
         </span>
-        <div style={{ width: '32px', height: '32px', background: '#DBEAFE', color: '#1E3A8A', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>B</div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={handleLogout}
+            className="admin-btn-secondary"
+            style={{ height: '36px', padding: '0 12px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            title="Cerrar sesión"
+          >
+            <LogOut size={14} /> Salir
+          </button>
+        </div>
       </header>
 
-      {/* 2. SIDEBAR (Drawer) */}
+      {/* Horizontal Quick Navigation Pills */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          overflowX: 'auto',
+          padding: '12px 16px',
+          background: '#FFFFFF',
+          borderBottom: '1px solid #F3E8FF',
+        }}
+      >
+        {navSections.map(sec => {
+          const isActive = activeMenu === sec.id;
+          return (
+            <button
+              key={sec.id}
+              onClick={() => {
+                setActiveMenu(sec.id);
+                setEditingEp(null);
+                setEditingReflection(null);
+                setEditingGuest(null);
+                setEditingNoticia(null);
+                setEditingStatement(null);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '999px',
+                border: isActive ? 'none' : '1px solid #E5E7EB',
+                background: isActive ? 'linear-gradient(135deg, #792359, #c026d3)' : '#F9FAFB',
+                color: isActive ? '#FFFFFF' : '#374151',
+                fontWeight: isActive ? 700 : 600,
+                fontSize: '13px',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+              }}
+            >
+              {sec.icon}
+              <span>{sec.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 2. SIDEBAR DRAWER */}
       <div className={`admin-sidebar-overlay ${isSidebarOpen ? 'open' : ''}`} onClick={() => setIsSidebarOpen(false)}></div>
       <div className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}>
-        <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
-          <SidebarItem icon={<LayoutDashboard size={20} />} label="Dashboard" active={activeMenu === 'dashboard'} onClick={() => {setActiveMenu('dashboard'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<Mic size={20} />} label="ConBERTAciones (Entrevistas)" active={activeMenu === 'episodios'} onClick={() => {setActiveMenu('episodios'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<BookOpen size={20} />} label="Under the Umbrella (Reflexiones)" active={activeMenu === 'reflexiones'} onClick={() => {setActiveMenu('reflexiones'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<User size={20} />} label="Invitados del Podcast" active={activeMenu === 'negocios'} onClick={() => {setActiveMenu('negocios'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<Briefcase size={20} />} label="Perfil & Speaker" active={activeMenu === 'perfil'} onClick={() => {setActiveMenu('perfil'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<Save size={20} />} label="Respaldos" active={activeMenu === 'backup'} onClick={() => {setActiveMenu('backup'); setIsSidebarOpen(false)}} />
-          
+        <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '6px', height: '100%', overflowY: 'auto' }}>
+          <div style={{ padding: '0 12px 12px 12px', borderBottom: '1px solid #F3E8FF', marginBottom: '8px' }}>
+            <div style={{ fontWeight: 800, fontSize: '16px', color: '#792359' }}>ConBERTAciones</div>
+            <div style={{ fontSize: '12px', color: '#6B7280' }}>Panel de Administración Unificado</div>
+          </div>
+
+          {navSections.map(sec => (
+            <SidebarItem
+              key={sec.id}
+              icon={sec.icon}
+              label={sec.label}
+              active={activeMenu === sec.id}
+              onClick={() => {
+                setActiveMenu(sec.id);
+                setIsSidebarOpen(false);
+              }}
+            />
+          ))}
+
           <div style={{ flex: 1 }}></div>
-          <SidebarItem icon={<LogOut size={20} />} label="Cerrar Admin" active={false} onClick={onClose} />
+          <SidebarItem icon={<LogOut size={18} />} label="Volver al Perfil" active={false} onClick={onClose} />
         </div>
       </div>
 
-      {/* 4. MAIN WORKSPACE */}
+      {/* 3. MAIN WORKSPACE */}
       <main className="admin-main">
-        
-        {/* VIEW: DASHBOARD */}
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 1: DASHBOARD (RESUMEN GENERAL)
+           ══════════════════════════════════════════════════════════════════ */}
         {activeMenu === 'dashboard' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }} className="responsive-flex">
-              <StatCard title="Entrevistas (ConBERTAciones)" value={episodes.length} icon={<Mic size={24} color="#2563EB" />} />
-              <StatCard title="Reflexiones (Under the Umbrella)" value={reflections.length} icon={<BookOpen size={24} color="#8B5CF6" />} />
-              <StatCard title="Invitados" value={guests.length} icon={<User size={24} color="#10B981" />} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #792359 0%, #c026d3 100%)',
+                color: '#FFFFFF',
+                padding: '24px',
+                borderRadius: '16px',
+                boxShadow: '0 10px 28px rgba(121, 35, 89, 0.2)',
+              }}
+            >
+              <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.9 }}>
+                ✨ Panel Todo-en-Uno · Berta Weyenberg
+              </span>
+              <h2 style={{ fontSize: '22px', fontWeight: 800, margin: '6px 0 8px 0' }}>
+                Bienvenida a tu Centro de Control de ConBERTAciones
+              </h2>
+              <p style={{ fontSize: '14px', margin: 0, opacity: 0.92, lineHeight: 1.5 }}>
+                Desde aquí puedes editar todo el contenido de la página de <strong>Inicio</strong>, publicar en <strong>The Weyenberg Statement</strong> y en el <strong>Blog de Berta</strong>, administrar episodios de <strong>ConBERTAciones</strong> y <strong>Under the Umbrella</strong>, y revisar mensajes de tu comunidad.
+              </p>
             </div>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <button className="admin-btn-primary" onClick={() => {setFormData({ id: '', title: '', host: 'Berta Weyenberg', duration: '0:00', color: 'purple', art: '', audioUrl: '', audioFile: null, audioFileName: '', description: '' }); setEditingEp('new'); setActiveMenu('episodios');}} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '52px', fontSize: '16px' }}>
-                <Plus size={20} /> Nueva Entrevista
-              </button>
-              {onSyncSpotify && (
+
+            {/* Stats Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(175px, 1fr))', gap: '14px' }}>
+              <StatCard
+                title="Entrevistas (ConBERTAciones)"
+                value={episodes.length}
+                icon={<Mic size={22} color="#792359" />}
+                onClick={() => setActiveMenu('episodios')}
+              />
+              <StatCard
+                title="Under the Umbrella"
+                value={reflections.length}
+                icon={<BookOpen size={22} color="#C026D3" />}
+                onClick={() => setActiveMenu('reflexiones')}
+              />
+              <StatCard
+                title="The Weyenberg Statement"
+                value={statements.length}
+                icon={<Scale size={22} color="#D97706" />}
+                onClick={() => setActiveMenu('statements')}
+              />
+              <StatCard
+                title="Blog de Berta"
+                value={noticias.length}
+                icon={<PenTool size={22} color="#2563EB" />}
+                onClick={() => setActiveMenu('noticias')}
+              />
+              <StatCard
+                title="Invitados"
+                value={guests.length}
+                icon={<User size={22} color="#10B981" />}
+                onClick={() => setActiveMenu('negocios')}
+              />
+            </div>
+
+            {/* Quick Action Cards */}
+            <div className="admin-form-card">
+              <h3 style={{ fontSize: '17px', fontWeight: 700, marginBottom: '14px', color: '#111827' }}>
+                Acciones Rápidas
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
                 <button
                   type="button"
-                  onClick={onSyncSpotify}
-                  disabled={isSyncingSpotify}
                   className="admin-btn-primary"
-                  style={{ flex: 1, background: '#1DB954', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '52px', fontSize: '16px' }}
+                  style={{ height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  onClick={() => setActiveMenu('inicio')}
                 >
-                  <UploadCloud size={20} /> {isSyncingSpotify ? 'Sincronizando Spotify...' : 'Sincronizar con Spotify for Creators'}
+                  <Home size={18} /> Editar Contenido de Inicio
                 </button>
-              )}
-            </div>
-            <div style={{ background: '#FFFFFF', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Estado de Spotify for Creators</h3>
-              <p style={{ fontSize: '14px', color: '#4B5563' }}>
-                Conectado al Show <strong>ConBERTAciones</strong> (ID: <code>1Kftb5HjEsEewOkHnpGsWW</code>). Los episodios largos se publican automáticamente en <strong>ConBERTAciones (Entrevistas)</strong> y las cápsulas bilingües en <strong>Under the Umbrella (Reflexiones)</strong>.
-              </p>
+
+                <button
+                  type="button"
+                  className="admin-btn-primary"
+                  style={{ height: '48px', background: '#9333EA', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  onClick={() => {
+                    setStatementData({
+                      id: '',
+                      titulo: '',
+                      categoria: 'Actualidad & Fe',
+                      versiculo: '',
+                      autor: 'Familia Weyenberg',
+                      fecha: new Date().toISOString().split('T')[0],
+                      resumen: '',
+                      contenidoRaw: '',
+                      imagen: '/berta.jpeg',
+                      imagenes: [],
+                      facebookUrl: '',
+                    });
+                    setEditingStatement('new');
+                    setActiveMenu('statements');
+                  }}
+                >
+                  <Plus size={18} /> Nuevo Weyenberg Statement
+                </button>
+
+                <button
+                  type="button"
+                  className="admin-btn-primary"
+                  style={{ height: '48px', background: '#D97706', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  onClick={() => {
+                    setNoticiaData({
+                      id: '',
+                      tipo: 'blog',
+                      titulo: '',
+                      fraseDestacada: '',
+                      excerpt: '',
+                      contenidoRaw: '',
+                      imagen: '/berta.jpeg',
+                      galeria: [],
+                      categoria: 'Fe & Esperanza',
+                      autor: 'Berta Weyenberg',
+                      fecha: new Date().toISOString().split('T')[0],
+                      lectura: 4,
+                    });
+                    setEditingNoticia('new');
+                    setActiveMenu('noticias');
+                  }}
+                >
+                  <Plus size={18} /> Nueva Reflexión en el Blog
+                </button>
+
+                {onSyncSpotify && (
+                  <button
+                    type="button"
+                    onClick={onSyncSpotify}
+                    disabled={isSyncingSpotify}
+                    className="admin-btn-primary"
+                    style={{ height: '48px', background: '#1DB954', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  >
+                    <UploadCloud size={18} />
+                    {isSyncingSpotify ? 'Sincronizando Spotify...' : 'Sincronizar Spotify for Creators'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
 
-        {/* VIEW: EPISODES (List) */}
-        {activeMenu === 'episodios' && !editingEp && (
-          <div>
-            <div className="admin-section-header">
-              <h2 className="admin-section-title">Gestión de Episodios</h2>
-              <button className="admin-btn-primary" style={{ width: 'auto', padding: '0 16px', height: '40px', display: 'flex', gap: '8px', alignItems: 'center' }} onClick={() => { setFormData({ id: '', title: '', host: 'Berta Weyenberg', duration: '0:00', color: 'purple', art: '', audioUrl: '', audioFile: null, audioFileName: '', description: '' }); setEditingEp('new'); }}>
-                <Plus size={18} /> Nuevo
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 2: CONTENIDO DE INICIO (HOME EDITOR)
+           ══════════════════════════════════════════════════════════════════ */}
+        {activeMenu === 'inicio' && (
+          <form className="admin-form-card" onSubmit={handleSaveHomeAndProfile}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+              <div>
+                <h2 className="admin-section-title">Administrar Contenido de Inicio (Home)</h2>
+                <p style={{ fontSize: '13px', color: '#6B7280', margin: '4px 0 0 0' }}>
+                  Personaliza la foto principal, biografía y los textos de cada tarjeta que ven los visitantes al entrar a ConBERTAciones.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" className="admin-btn-secondary" onClick={handleResetHomeDefaults}>
+                  Restaurar por Defecto
+                </button>
+                <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 22px' }}>
+                  Guardar Cambios de Inicio
+                </button>
+              </div>
+            </div>
+
+            {/* 1. Tarjeta Principal de Bienvenida / Bio */}
+            <div className="admin-subcard">
+              <h3 className="admin-subtitle">1. Tarjeta Principal: Foto, Nombre, Rol y Biografía</h3>
+
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '18px' }}>
+                <img
+                  src={localProfile.avatar || '/berta.jpeg'}
+                  alt="Avatar Berta"
+                  style={{ width: '88px', height: '88px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #792359' }}
+                />
+                <div style={{ flex: 1, minWidth: '240px' }}>
+                  <label className="admin-label">Foto Principal de Berta (Inicio y Perfil)</label>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <label className="admin-btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', height: '38px' }}>
+                      <ImageIcon size={15} /> Subir Nueva Foto
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={e => handleSingleImageUpload(e, res => setLocalProfile({ ...localProfile, avatar: res }))}
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      className="admin-input"
+                      style={{ flex: 1, minWidth: '180px' }}
+                      value={localProfile.avatar || ''}
+                      onChange={e => setLocalProfile({ ...localProfile, avatar: e.target.value })}
+                      placeholder="/berta.jpeg o URL de imagen"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-grid-2">
+                <div>
+                  <label className="admin-label">Nombre Principal</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.heroName || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, heroName: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Ubicación y Correo de Contacto</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      className="admin-input"
+                      placeholder="Louisville, Kentucky"
+                      value={localProfile.location || ''}
+                      onChange={e => setLocalProfile({ ...localProfile, location: e.target.value })}
+                    />
+                    <input
+                      type="text"
+                      className="admin-input"
+                      placeholder="info@conbertaciones.com"
+                      value={localProfile.contactEmail || ''}
+                      onChange={e => setLocalProfile({ ...localProfile, contactEmail: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-grid-2" style={{ marginTop: '14px' }}>
+                <div>
+                  <label className="admin-label">Subtítulo / Rol (🇪🇸 Español)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.heroRoleEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, heroRoleEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Subtítulo / Rol (🇺🇸 Inglés)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.heroRoleEn || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, heroRoleEn: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-grid-2" style={{ marginTop: '14px' }}>
+                <div>
+                  <label className="admin-label">Biografía de Inicio (🇪🇸 Español)</label>
+                  <textarea
+                    className="admin-textarea"
+                    rows={4}
+                    value={localProfile.bioEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, bioEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Biografía de Inicio (🇺🇸 Inglés)</label>
+                  <textarea
+                    className="admin-textarea"
+                    rows={4}
+                    value={localProfile.bioEn || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, bioEn: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-grid-2" style={{ marginTop: '14px' }}>
+                <div>
+                  <label className="admin-label">Descripción corta de ConBERTAciones en Bio (🇪🇸 ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.space1DescEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, space1DescEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Descripción corta de Under the Umbrella en Bio (🇪🇸 ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.space2DescEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, space2DescEs: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Tarjetas de Podcast y Reflexiones en Inicio */}
+            <div className="admin-subcard">
+              <h3 className="admin-subtitle">2. Tarjetas de Podcast (ConBERTAciones) y Reflexiones (Under the Umbrella)</h3>
+              <div className="admin-grid-2">
+                <div>
+                  <label className="admin-label">Título Tarjeta Podcast (🇪🇸 ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.cardPodcastTitleEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardPodcastTitleEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Título Tarjeta Podcast (🇺🇸 EN)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.cardPodcastTitleEn || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardPodcastTitleEn: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-grid-2" style={{ marginTop: '12px' }}>
+                <div>
+                  <label className="admin-label">Título Tarjeta Under the Umbrella (🇪🇸 ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.cardUmbrellaTitleEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardUmbrellaTitleEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Título Tarjeta Under the Umbrella (🇺🇸 EN)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.cardUmbrellaTitleEn || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardUmbrellaTitleEn: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Tarjeta de Charlas / Conferencista en Inicio */}
+            <div className="admin-subcard">
+              <h3 className="admin-subtitle">3. Tarjeta "Agenda una Charla" en Inicio</h3>
+              <div className="admin-grid-2">
+                <div>
+                  <label className="admin-label">Título de Tarjeta Charlas (🇪🇸 ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.cardSpeakerTitleEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardSpeakerTitleEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Descripción de Tarjeta Charlas (🇪🇸 ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.cardSpeakerDescEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardSpeakerDescEs: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginTop: '12px' }}>
+                <div>
+                  <label className="admin-label">🎓 Viñeta 1 (Educativa)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.speakerBullet1Es || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, speakerBullet1Es: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">✨ Viñeta 2 (Damas / Fe)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.speakerBullet2Es || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, speakerBullet2Es: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">💼 Viñeta 3 (Compañías / Empleados)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.speakerBullet3Es || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, speakerBullet3Es: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Tarjetas The Weyenberg Statement, Blog de Berta y Conecta */}
+            <div className="admin-subcard">
+              <h3 className="admin-subtitle">4. Tarjetas de The Weyenberg Statement, Blog de Berta y Conecta</h3>
+              <div className="admin-grid-2">
+                <div>
+                  <label className="admin-label">Descripción The Weyenberg Statement (🇪🇸 ES)</label>
+                  <textarea
+                    className="admin-textarea"
+                    rows={2}
+                    value={localProfile.cardStatementDescEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardStatementDescEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Descripción Blog de Berta (🇪🇸 ES)</label>
+                  <textarea
+                    className="admin-textarea"
+                    rows={2}
+                    value={localProfile.cardBlogDescEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardBlogDescEs: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-grid-2" style={{ marginTop: '12px' }}>
+                <div>
+                  <label className="admin-label">Título Tarjeta Conecta (🇪🇸 ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.cardConectaTitleEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardConectaTitleEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Descripción Tarjeta Conecta (🇪🇸 ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.cardConectaDescEs || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, cardConectaDescEs: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-sticky-bottom">
+              <button type="submit" className="admin-btn-primary">
+                Guardar Todo el Contenido de Inicio
               </button>
             </div>
-            
+          </form>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 3: THE WEYENBERG STATEMENT
+           ══════════════════════════════════════════════════════════════════ */}
+        {activeMenu === 'statements' && !editingStatement && (
+          <div>
+            <div className="admin-section-header">
+              <div>
+                <h2 className="admin-section-title">The Weyenberg Statement ({statements.length})</h2>
+                <p style={{ fontSize: '13px', color: '#6B7280', margin: '2px 0 0 0' }}>
+                  Publica los pronunciamientos de la familia Weyenberg desde Facebook con versículos e imágenes.
+                </p>
+              </div>
+              <button
+                className="admin-btn-primary"
+                style={{ width: 'auto', padding: '0 18px', height: '42px', display: 'flex', gap: '8px', alignItems: 'center' }}
+                onClick={() => {
+                  setStatementData({
+                    id: '',
+                    titulo: '',
+                    categoria: 'Actualidad & Fe',
+                    versiculo: '',
+                    autor: 'Familia Weyenberg',
+                    fecha: new Date().toISOString().split('T')[0],
+                    resumen: '',
+                    contenidoRaw: '',
+                    imagen: '/berta.jpeg',
+                    imagenes: [],
+                    facebookUrl: '',
+                  });
+                  setEditingStatement('new');
+                }}
+              >
+                <Plus size={18} /> Nuevo Statement
+              </button>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {episodes.map(ep => (
-                <div key={ep.id} className="admin-item-card">
-                  <img src={ep.art || 'https://via.placeholder.com/64'} className="admin-item-img" alt={ep.title} />
+              {statements.map(st => (
+                <div key={st.id} className="admin-item-card">
+                  <img src={st.imagen || '/berta.jpeg'} className="admin-item-img" alt={st.titulo} />
                   <div className="admin-item-info">
-                    <h4 className="admin-item-title">{ep.title}</h4>
-                    <span className="admin-item-subtitle">{ep.host} • {ep.duration}</span>
-                    <span className="admin-badge-success">Publicado</span>
+                    <h4 className="admin-item-title">{st.titulo}</h4>
+                    <span className="admin-item-subtitle">
+                      {st.categoria} • {st.fecha} {st.versiculo ? `• 📖 ${st.versiculo.substring(0, 45)}...` : ''}
+                    </span>
+                    <span className="admin-badge-success">The Weyenberg Statement</span>
                   </div>
                   <div className="admin-item-actions">
-                    <button className="admin-action-btn" onClick={() => { setFormData(ep); setEditingEp(ep.id); }}><Edit2 size={18} color="#4B5563" /></button>
-                    <button className="admin-action-btn error" onClick={() => { if(window.confirm('¿Borrar episodio?')) { onDelete(ep.id); triggerAdminToast('Eliminado', 'error'); } }}><Trash2 size={18} color="#EF4444" /></button>
+                    <button
+                      className="admin-action-btn"
+                      onClick={() => {
+                        setStatementData({
+                          id: st.id,
+                          titulo: st.titulo || '',
+                          categoria: st.categoria || 'Actualidad & Fe',
+                          versiculo: st.versiculo || '',
+                          autor: st.autor || 'Familia Weyenberg',
+                          fecha: st.fecha || new Date().toISOString().split('T')[0],
+                          resumen: st.resumen || '',
+                          contenidoRaw: htmlToPlainText(st.contenido || ''),
+                          imagen: st.imagen || '/berta.jpeg',
+                          imagenes: st.imagenes || [],
+                          facebookUrl: st.facebookUrl || '',
+                        });
+                        setEditingStatement(st.id);
+                      }}
+                    >
+                      <Edit2 size={18} color="#4B5563" />
+                    </button>
+                    <button
+                      className="admin-action-btn error"
+                      onClick={() => {
+                        if (window.confirm('¿Eliminar este Statement?')) {
+                          onDeleteStatement(st.id);
+                          triggerAdminToast('Statement eliminado', 'error');
+                        }
+                      }}
+                    >
+                      <Trash2 size={18} color="#EF4444" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -233,173 +1267,275 @@ const AdminView = ({
           </div>
         )}
 
-        {/* VIEW: EPISODE FORM (Crear/Editar) */}
-        {activeMenu === 'episodios' && editingEp && (
-          <form className="admin-form-card" onSubmit={handleSaveEp}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>{editingEp === 'new' ? 'Nuevo Episodio' : 'Editar Episodio'}</h3>
-            
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Título</label>
-              <input type="text" className="admin-input" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ej. La fuerza de la resiliencia" />
-            </div>
-            
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Nombre del Invitado</label>
-              <input type="text" className="admin-input" required value={formData.host} onChange={e => setFormData({...formData, host: e.target.value})} placeholder="Nombre y Apellido" />
-            </div>
+        {activeMenu === 'statements' && editingStatement && (
+          <form className="admin-form-card" onSubmit={handleSaveStatement}>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '18px' }}>
+              {editingStatement === 'new' ? 'Publicar Nuevo Weyenberg Statement' : 'Editar Statement'}
+            </h3>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Miniatura del Episodio</label>
-              {formData.art ? (
-                <div style={{ position: 'relative', width: '120px', height: '120px', borderRadius: '8px', overflow: 'hidden', marginBottom: '8px' }}>
-                  <img src={formData.art} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Portada" />
-                  <button type="button" onClick={() => setFormData({...formData, art: ''})} style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14}/></button>
-                </div>
-              ) : (
-                <label className="admin-dropzone">
-                  <UploadCloud size={24} color="#9CA3AF" style={{ marginBottom: '8px' }} />
-                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Toca para subir una imagen</span>
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, 'ep')} />
-                </label>
-              )}
-              <input type="text" className="admin-input" style={{ marginTop: '8px' }} value={formData.art} onChange={e => setFormData({...formData, art: e.target.value})} placeholder="O pega un enlace de imagen (HTTP)" />
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Archivo de Audio Local (Dispositivo)</label>
-              {formData.audioFile ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '6px' }}>
-                  <span style={{ fontSize: '14px', color: '#1E40AF', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>
-                    🎵 {formData.audioFileName || 'Archivo de audio cargado'}
-                  </span>
-                  <button type="button" onClick={() => setFormData({...formData, audioFile: null, audioFileName: '', duration: '0:00'})} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444' }}><X size={18}/></button>
-                </div>
-              ) : (
-                <label className="admin-dropzone" style={{ height: '80px', padding: '10px' }}>
-                  <UploadCloud size={20} color="#9CA3AF" style={{ marginBottom: '4px' }} />
-                  <span style={{ fontSize: '13px', color: '#6B7280' }}>Subir archivo de audio (MP3, WAV, etc.)</span>
-                  <input type="file" accept="audio/*" style={{ display: 'none' }} onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      setFormData({ ...formData, audioFile: file, audioFileName: file.name, duration: 'Calculando...' });
-                      const audio = new Audio();
-                      audio.src = URL.createObjectURL(file);
-                      audio.addEventListener('loadedmetadata', () => {
-                        const mins = Math.floor(audio.duration / 60);
-                        const secs = Math.floor(audio.duration % 60);
-                        const durStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-                        setFormData(prev => ({ ...prev, audioFile: file, audioFileName: file.name, duration: durStr }));
-                      });
-                    }
-                  }} />
-                </label>
-              )}
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Enlace del Audio (Alternativo/Streaming)</label>
-              <div style={{ position: 'relative' }}>
-                <LinkIcon size={20} color="#9CA3AF" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-                <input type="text" className="admin-input" style={{ paddingLeft: '40px' }} value={formData.audioUrl} onChange={e => setFormData({...formData, audioUrl: e.target.value})} placeholder="URL MP3 o Embed Spotify (Ej. si no subes archivo)" />
+            <div className="admin-grid-2">
+              <div>
+                <label className="admin-label">Título del Statement *</label>
+                <input
+                  type="text"
+                  required
+                  className="admin-input"
+                  value={statementData.titulo}
+                  onChange={e => setStatementData({ ...statementData, titulo: e.target.value })}
+                  placeholder="Ej. Discernimiento en Tiempos de Confusión Cultural"
+                />
+              </div>
+              <div>
+                <label className="admin-label">Categoría *</label>
+                <select
+                  className="admin-input"
+                  value={statementData.categoria}
+                  onChange={e => setStatementData({ ...statementData, categoria: e.target.value })}
+                >
+                  {STATEMENT_CATEGORIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Descripción</label>
-              <textarea className="admin-textarea" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Escribe de qué trata el episodio..."></textarea>
+            <div className="admin-grid-2" style={{ marginTop: '14px' }}>
+              <div>
+                <label className="admin-label">Concepto o Versículo Bíblico Base *</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={statementData.versiculo}
+                  onChange={e => setStatementData({ ...statementData, versiculo: e.target.value })}
+                  placeholder="Ej. Romanos 12:2 — No os conforméis a este siglo..."
+                />
+              </div>
+              <div>
+                <label className="admin-label">Autor y Fecha</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={statementData.autor}
+                    onChange={e => setStatementData({ ...statementData, autor: e.target.value })}
+                    placeholder="Familia Weyenberg"
+                  />
+                  <input
+                    type="date"
+                    className="admin-input"
+                    style={{ width: '155px' }}
+                    value={statementData.fecha}
+                    onChange={e => setStatementData({ ...statementData, fecha: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '14px' }}>
+              <label className="admin-label">Enlace al Post Original en Facebook (Opcional)</label>
+              <input
+                type="url"
+                className="admin-input"
+                value={statementData.facebookUrl}
+                onChange={e => setStatementData({ ...statementData, facebookUrl: e.target.value })}
+                placeholder="https://www.facebook.com/..."
+              />
+            </div>
+
+            {/* Cover & Gallery Uploads */}
+            <div className="admin-grid-2" style={{ marginTop: '16px' }}>
+              <div className="admin-subcard" style={{ marginBottom: 0 }}>
+                <label className="admin-label">Imagen Principal de Portada</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="admin-input"
+                  style={{ marginBottom: '8px' }}
+                  onChange={e => handleSingleImageUpload(e, res => setStatementData(prev => ({ ...prev, imagen: res })))}
+                />
+                <input
+                  type="text"
+                  className="admin-input"
+                  placeholder="O pega URL de imagen..."
+                  value={statementData.imagen && !statementData.imagen.startsWith('data:') ? statementData.imagen : ''}
+                  onChange={e => setStatementData({ ...statementData, imagen: e.target.value })}
+                />
+                {statementData.imagen && (
+                  <img
+                    src={statementData.imagen}
+                    alt="Portada"
+                    style={{ width: '140px', height: '90px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px' }}
+                  />
+                )}
+              </div>
+
+              <div className="admin-subcard" style={{ marginBottom: 0 }}>
+                <label className="admin-label">Galería de Fotos Adicionales (Múltiples)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="admin-input"
+                  onChange={e =>
+                    handleMultipleImagesUpload(e, res =>
+                      setStatementData(prev => ({ ...prev, imagenes: [...(prev.imagenes || []), res] }))
+                    )
+                  }
+                />
+                {statementData.imagenes?.length > 0 && (
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
+                    {statementData.imagenes.map((img, i) => (
+                      <div key={i} style={{ position: 'relative', width: '68px', height: '68px' }}>
+                        <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setStatementData(prev => ({
+                              ...prev,
+                              imagenes: prev.imagenes.filter((_, idx) => idx !== i),
+                            }))
+                          }
+                          style={{
+                            position: 'absolute',
+                            top: 2,
+                            right: 2,
+                            background: 'rgba(0,0,0,0.75)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: 20,
+                            height: 20,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ marginTop: '14px' }}>
+              <label className="admin-label">Resumen Corto (Opcional)</label>
+              <input
+                type="text"
+                className="admin-input"
+                value={statementData.resumen}
+                onChange={e => setStatementData({ ...statementData, resumen: e.target.value })}
+                placeholder="Breve síntesis del fenómeno analizado..."
+              />
+            </div>
+
+            <div style={{ marginTop: '14px', marginBottom: '20px' }}>
+              <label className="admin-label">Contenido Completo del Statement (Puedes copiar y pegar de Facebook) *</label>
+              <textarea
+                required
+                className="admin-textarea"
+                style={{ minHeight: '200px' }}
+                value={statementData.contenidoRaw}
+                onChange={e => setStatementData({ ...statementData, contenidoRaw: e.target.value })}
+                placeholder="Escribe o pega aquí el pronunciamiento completo..."
+              />
             </div>
 
             <div className="admin-sticky-bottom">
-              <button type="button" className="admin-btn-secondary" onClick={() => setEditingEp(null)}>Cancelar</button>
-              <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 24px' }}>Guardar Episodio</button>
+              <button type="button" className="admin-btn-secondary" onClick={() => setEditingStatement(null)}>
+                Cancelar
+              </button>
+              <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 24px' }}>
+                Guardar Statement
+              </button>
             </div>
           </form>
         )}
 
-        {/* VIEW: UNDER THE UMBRELLA (Dual Editor) */}
-        {activeMenu === 'reflexiones' && (
-          <div className="admin-form-card">
-            <div className="admin-section-header">
-              <h2 className="admin-section-title">Under the Umbrella (Playlists)</h2>
-            </div>
-            <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '24px' }}>
-              Configura los videos y textos. Esta sección se mostrará como listas de reproducción estilo YouTube en el inicio.
-            </p>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label className="admin-label">Miniatura Principal de la Lista</label>
-              {reflectionData.thumbnail ? (
-                <div style={{ position: 'relative', width: '160px', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', marginBottom: '8px' }}>
-                  <img src={reflectionData.thumbnail} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Thumb" />
-                  <button type="button" onClick={() => setReflectionData({...reflectionData, thumbnail: ''})} style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14}/></button>
-                </div>
-              ) : (
-                <label className="admin-dropzone" style={{ height: '90px' }}>
-                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Sube la portada de la playlist</span>
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, 'reflection')} />
-                </label>
-              )}
-            </div>
-            
-            <div style={{ background: '#F9FAFB', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#374151', marginBottom: '16px' }}>🇬🇧 Playlist Version (English)</h3>
-              
-              <label className="admin-label">YouTube Video URL (Opcional)</label>
-              <input type="text" className="admin-input" style={{ marginBottom: '16px' }} value={reflectionData.videoEn} onChange={e => setReflectionData({...reflectionData, videoEn: e.target.value})} placeholder="https://youtu.be/..." />
-
-              <label className="admin-label">Título del Texto</label>
-              <input type="text" className="admin-input" style={{ marginBottom: '12px' }} value={reflectionData.titleEn} onChange={e => setReflectionData({...reflectionData, titleEn: e.target.value})} placeholder="Title in English" />
-              
-              <div className="admin-wysiwyg-toolbar">
-                <button type="button"><Bold size={16}/></button><button type="button"><Italic size={16}/></button><button type="button"><Underline size={16}/></button><button type="button"><ListIcon size={16}/></button>
-              </div>
-              {/* Note for logic correctness: contentEditable is uncontrolled visually in this MVP implementation, but for robust React code it needs onInput handling. Adding an onChange workaround for raw text */}
-              <textarea className="admin-wysiwyg-content" style={{width:'100%', display:'block', minHeight:'120px', resize: 'vertical'}} placeholder="Write your reflection here..." value={reflectionData.contentEn} onChange={e => setReflectionData({...reflectionData, contentEn: e.target.value})} />
-            </div>
-
-            <div style={{ background: '#F9FAFB', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#374151', marginBottom: '16px' }}>🇪🇸 Versión Lista (Español)</h3>
-              
-              <label className="admin-label">URL del Video en YouTube (Opcional)</label>
-              <input type="text" className="admin-input" style={{ marginBottom: '16px' }} value={reflectionData.videoEs} onChange={e => setReflectionData({...reflectionData, videoEs: e.target.value})} placeholder="https://youtu.be/..." />
-
-              <label className="admin-label">Título del Texto</label>
-              <input type="text" className="admin-input" style={{ marginBottom: '12px' }} value={reflectionData.titleEs} onChange={e => setReflectionData({...reflectionData, titleEs: e.target.value})} placeholder="Título en Español" />
-              
-              <div className="admin-wysiwyg-toolbar">
-                <button type="button"><Bold size={16}/></button><button type="button"><Italic size={16}/></button><button type="button"><Underline size={16}/></button><button type="button"><ListIcon size={16}/></button>
-              </div>
-              <textarea className="admin-wysiwyg-content" style={{width:'100%', display:'block', minHeight:'120px', resize: 'vertical'}} placeholder="Escribe tu reflexión aquí..." value={reflectionData.contentEs} onChange={e => setReflectionData({...reflectionData, contentEs: e.target.value})} />
-            </div>
-            
-            <button className="admin-btn-primary" onClick={handleSaveReflection}>Guardar Listas de Reproducción</button>
-          </div>
-        )}
-
-        {/* VIEW: NOTICIAS & BLOG (List) */}
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 4: BLOG DE BERTA (REFLEXIONES ESCRITAS + IMÁGENES)
+           ══════════════════════════════════════════════════════════════════ */}
         {activeMenu === 'noticias' && !editingNoticia && (
           <div>
             <div className="admin-section-header">
-              <h2 className="admin-section-title">Gestión de Noticias & Blog</h2>
-              <button className="admin-btn-primary" style={{ width: 'auto', padding: '0 16px', height: '40px', display: 'flex', gap: '8px', alignItems: 'center' }} onClick={() => { setNoticiaData({ id: '', tipo: 'noticia', titulo: '', excerpt: '', contenido: '', imagen: '', categoria: 'Comunidad', autor: 'Berta Weyenberg', fecha: new Date().toISOString().split('T')[0], lectura: 3 }); setEditingNoticia('new'); }}>
-                <Plus size={18} /> Nuevo Artículo
+              <div>
+                <h2 className="admin-section-title">Blog de Berta · Reflexiones ({noticias.length})</h2>
+                <p style={{ fontSize: '13px', color: '#6B7280', margin: '2px 0 0 0' }}>
+                  Publica reflexiones escritas, enseñanzas y galerías de imágenes en tu Blog personal.
+                </p>
+              </div>
+              <button
+                className="admin-btn-primary"
+                style={{ width: 'auto', padding: '0 18px', height: '42px', display: 'flex', gap: '8px', alignItems: 'center' }}
+                onClick={() => {
+                  setNoticiaData({
+                    id: '',
+                    tipo: 'blog',
+                    titulo: '',
+                    fraseDestacada: '',
+                    excerpt: '',
+                    contenidoRaw: '',
+                    imagen: '/berta.jpeg',
+                    galeria: [],
+                    categoria: 'Fe & Esperanza',
+                    autor: 'Berta Weyenberg',
+                    fecha: new Date().toISOString().split('T')[0],
+                    lectura: 4,
+                  });
+                  setEditingNoticia('new');
+                }}
+              >
+                <Plus size={18} /> Nueva Reflexión del Blog
               </button>
             </div>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {noticias && noticias.map(n => (
+              {noticias.map(n => (
                 <div key={n.id} className="admin-item-card">
-                  <img src={n.imagen || 'https://via.placeholder.com/64'} className="admin-item-img" alt={n.titulo} />
+                  <img src={n.imagen || '/berta.jpeg'} className="admin-item-img" alt={n.titulo} />
                   <div className="admin-item-info">
                     <h4 className="admin-item-title">{n.titulo}</h4>
-                    <span className="admin-item-subtitle">{n.autor} • {n.fecha} • {n.categoria}</span>
-                    <span className="admin-badge-success" style={{ background: n.tipo === 'blog' ? '#FCE7F3' : '#EFF6FF', color: n.tipo === 'blog' ? '#DB2777' : '#2563EB' }}>
-                      {n.tipo === 'blog' ? 'Blog de Berta' : 'Noticia'}
+                    <span className="admin-item-subtitle">
+                      {n.autor} • {n.fecha} • {n.categoria}
+                      {n.galeria?.length > 0 ? ` • 📸 ${n.galeria.length + 1} fotos` : ''}
+                    </span>
+                    <span className="admin-badge-success" style={{ background: '#FCE7F3', color: '#DB2777' }}>
+                      Blog de Berta
                     </span>
                   </div>
                   <div className="admin-item-actions">
-                    <button className="admin-action-btn" onClick={() => { setNoticiaData(n); setEditingNoticia(n.id); }}><Edit2 size={18} color="#4B5563" /></button>
-                    <button className="admin-action-btn error" onClick={() => { if(window.confirm('¿Borrar este artículo?')) { onDeleteNoticia(n.id); triggerAdminToast('Artículo eliminado', 'error'); } }}><Trash2 size={18} color="#EF4444" /></button>
+                    <button
+                      className="admin-action-btn"
+                      onClick={() => {
+                        setNoticiaData({
+                          id: n.id,
+                          tipo: 'blog',
+                          titulo: n.titulo || '',
+                          fraseDestacada: n.fraseDestacada || '',
+                          excerpt: n.excerpt || '',
+                          contenidoRaw: htmlToPlainText(n.contenido || ''),
+                          imagen: n.imagen || '/berta.jpeg',
+                          galeria: n.galeria || [],
+                          categoria: n.categoria || 'Fe & Esperanza',
+                          autor: n.autor || 'Berta Weyenberg',
+                          fecha: n.fecha || new Date().toISOString().split('T')[0],
+                          lectura: n.lectura || 4,
+                        });
+                        setEditingNoticia(n.id);
+                      }}
+                    >
+                      <Edit2 size={18} color="#4B5563" />
+                    </button>
+                    <button
+                      className="admin-action-btn error"
+                      onClick={() => {
+                        if (window.confirm('¿Borrar esta reflexión del Blog?')) {
+                          onDeleteNoticia(n.id);
+                          triggerAdminToast('Reflexión eliminada', 'error');
+                        }
+                      }}
+                    >
+                      <Trash2 size={18} color="#EF4444" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -407,143 +1543,610 @@ const AdminView = ({
           </div>
         )}
 
-        {/* VIEW: NOTICIAS & BLOG FORM (Crear/Editar) */}
         {activeMenu === 'noticias' && editingNoticia && (
-          <form className="admin-form-card" onSubmit={(e) => {
-            e.preventDefault();
-            if (!noticiaData.titulo || !noticiaData.contenido) {
-              return triggerAdminToast('Título y Contenido son requeridos', 'warning');
-            }
-            if (editingNoticia === 'new') {
-              onAddNoticia(noticiaData);
-              triggerAdminToast('Artículo añadido', 'success');
-            } else {
-              onUpdateNoticia(noticiaData);
-              triggerAdminToast('Artículo actualizado', 'success');
-            }
-            setEditingNoticia(null);
-          }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>
-              {editingNoticia === 'new' ? 'Nuevo Artículo' : 'Editar Artículo'}
+          <form className="admin-form-card" onSubmit={handleSaveBlog}>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '18px' }}>
+              {editingNoticia === 'new' ? 'Nueva Reflexión para el Blog de Berta' : 'Editar Reflexión del Blog'}
             </h3>
-            
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Título</label>
-              <input type="text" className="admin-input" required value={noticiaData.titulo} onChange={e => setNoticiaData({...noticiaData, titulo: e.target.value})} placeholder="Ej. JCPS Expande Programa Bilingüe" />
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+            <div className="admin-grid-2">
               <div>
-                <label className="admin-label">Tipo</label>
-                <select className="admin-input" value={noticiaData.tipo} onChange={e => setNoticiaData({...noticiaData, tipo: e.target.value})}>
-                  <option value="noticia">Noticia</option>
-                  <option value="blog">Blog</option>
-                </select>
+                <label className="admin-label">Título de la Reflexión *</label>
+                <input
+                  type="text"
+                  required
+                  className="admin-input"
+                  value={noticiaData.titulo}
+                  onChange={e => setNoticiaData({ ...noticiaData, titulo: e.target.value })}
+                  placeholder="Ej. El poder de la fe en tiempos de incertidumbre"
+                />
               </div>
               <div>
                 <label className="admin-label">Categoría</label>
-                <select className="admin-input" value={noticiaData.categoria} onChange={e => setNoticiaData({...noticiaData, categoria: e.target.value})}>
-                  <option value="Comunidad">Comunidad</option>
-                  <option value="Educación">Educación</option>
-                  <option value="Salud">Salud</option>
-                  <option value="Blog">Blog</option>
-                  <option value="Cultura">Cultura</option>
+                <select
+                  className="admin-input"
+                  value={noticiaData.categoria}
+                  onChange={e => setNoticiaData({ ...noticiaData, categoria: e.target.value })}
+                >
+                  {BLOG_CATEGORIES.map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
                 </select>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '20px' }} className="responsive-flex">
+            <div className="admin-grid-2" style={{ marginTop: '14px' }}>
               <div>
-                <label className="admin-label">Autor</label>
-                <input type="text" className="admin-input" value={noticiaData.autor} onChange={e => setNoticiaData({...noticiaData, autor: e.target.value})} placeholder="Ej. Berta Weyenberg" />
+                <label className="admin-label">Frase Destacada (Opcional)</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={noticiaData.fraseDestacada}
+                  onChange={e => setNoticiaData({ ...noticiaData, fraseDestacada: e.target.value })}
+                  placeholder="Cita o pensamiento clave para resaltar..."
+                />
               </div>
-              <div>
-                <label className="admin-label">Fecha</label>
-                <input type="date" className="admin-input" value={noticiaData.fecha} onChange={e => setNoticiaData({...noticiaData, fecha: e.target.value})} />
-              </div>
-              <div>
-                <label className="admin-label">Tiempo de Lectura (min)</label>
-                <input type="number" className="admin-input" min="1" value={noticiaData.lectura} onChange={e => setNoticiaData({...noticiaData, lectura: parseInt(e.target.value) || 1})} />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Imagen de Portada</label>
-              {noticiaData.imagen ? (
-                <div style={{ position: 'relative', width: '200px', aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', marginBottom: '8px' }}>
-                  <img src={noticiaData.imagen} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Portada" />
-                  <button type="button" onClick={() => setNoticiaData({...noticiaData, imagen: ''})} style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14}/></button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="admin-label">Fecha</label>
+                  <input
+                    type="date"
+                    className="admin-input"
+                    value={noticiaData.fecha}
+                    onChange={e => setNoticiaData({ ...noticiaData, fecha: e.target.value })}
+                  />
                 </div>
-              ) : (
-                <label className="admin-dropzone" style={{ height: '120px' }}>
-                  <UploadCloud size={24} color="#9CA3AF" style={{ marginBottom: '8px' }} />
-                  <span style={{ fontSize: '14px', color: '#6B7280' }}>Sube una imagen de portada</span>
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        setNoticiaData({ ...noticiaData, imagen: reader.result });
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }} />
-                </label>
-              )}
-              <input type="text" className="admin-input" style={{ marginTop: '8px' }} value={noticiaData.imagen} onChange={e => setNoticiaData({...noticiaData, imagen: e.target.value})} placeholder="O pega un enlace de imagen (HTTP)" />
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Resumen / Copete</label>
-              <textarea className="admin-textarea" style={{ minHeight: '60px' }} value={noticiaData.excerpt} onChange={e => setNoticiaData({...noticiaData, excerpt: e.target.value})} placeholder="Resumen corto del artículo..." />
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label className="admin-label">Contenido completo (HTML permitido)</label>
-              <div className="admin-wysiwyg-toolbar">
-                <button type="button" onClick={() => {
-                  setNoticiaData(prev => ({ ...prev, contenido: prev.contenido + '<b>Texto en negrita</b>' }));
-                }}><Bold size={16}/></button>
-                <button type="button" onClick={() => {
-                  setNoticiaData(prev => ({ ...prev, contenido: prev.contenido + '<i>Texto en cursiva</i>' }));
-                }}><Italic size={16}/></button>
-                <button type="button" onClick={() => {
-                  setNoticiaData(prev => ({ ...prev, contenido: prev.contenido + '<p>Párrafo nuevo</p>' }));
-                }}><Underline size={16}/></button>
-                <button type="button" onClick={() => {
-                  setNoticiaData(prev => ({ ...prev, contenido: prev.contenido + '<ul><li>Ítem</li></ul>' }));
-                }}><ListIcon size={16}/></button>
+                <div style={{ width: '110px' }}>
+                  <label className="admin-label">Lectura (min)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    className="admin-input"
+                    value={noticiaData.lectura}
+                    onChange={e => setNoticiaData({ ...noticiaData, lectura: parseInt(e.target.value) || 3 })}
+                  />
+                </div>
               </div>
-              <textarea className="admin-wysiwyg-content" style={{ width: '100%', minHeight: '250px', resize: 'vertical' }} placeholder="Escribe el contenido aquí en HTML..." value={noticiaData.contenido} onChange={e => setNoticiaData({...noticiaData, contenido: e.target.value})} />
+            </div>
+
+            {/* Cover & Gallery Uploads */}
+            <div className="admin-grid-2" style={{ marginTop: '16px' }}>
+              <div className="admin-subcard" style={{ marginBottom: 0 }}>
+                <label className="admin-label">Imagen Principal de Portada</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="admin-input"
+                  style={{ marginBottom: '8px' }}
+                  onChange={e => handleSingleImageUpload(e, res => setNoticiaData(prev => ({ ...prev, imagen: res })))}
+                />
+                <input
+                  type="text"
+                  className="admin-input"
+                  placeholder="O pega URL de imagen..."
+                  value={noticiaData.imagen && !noticiaData.imagen.startsWith('data:') ? noticiaData.imagen : ''}
+                  onChange={e => setNoticiaData({ ...noticiaData, imagen: e.target.value })}
+                />
+                {noticiaData.imagen && (
+                  <img
+                    src={noticiaData.imagen}
+                    alt="Portada"
+                    style={{ width: '140px', height: '90px', objectFit: 'cover', borderRadius: '8px', marginTop: '10px' }}
+                  />
+                )}
+              </div>
+
+              <div className="admin-subcard" style={{ marginBottom: 0 }}>
+                <label className="admin-label">Galería de Imágenes Adicionales (Múltiples)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="admin-input"
+                  onChange={e =>
+                    handleMultipleImagesUpload(e, res =>
+                      setNoticiaData(prev => ({ ...prev, galeria: [...(prev.galeria || []), res] }))
+                    )
+                  }
+                />
+                {noticiaData.galeria?.length > 0 && (
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
+                    {noticiaData.galeria.map((img, i) => (
+                      <div key={i} style={{ position: 'relative', width: '68px', height: '68px' }}>
+                        <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setNoticiaData(prev => ({
+                              ...prev,
+                              galeria: prev.galeria.filter((_, idx) => idx !== i),
+                            }))
+                          }
+                          style={{
+                            position: 'absolute',
+                            top: 2,
+                            right: 2,
+                            background: 'rgba(0,0,0,0.75)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: 20,
+                            height: 20,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ marginTop: '14px' }}>
+              <label className="admin-label">Resumen Corto (Opcional)</label>
+              <textarea
+                className="admin-textarea"
+                style={{ minHeight: '60px' }}
+                value={noticiaData.excerpt}
+                onChange={e => setNoticiaData({ ...noticiaData, excerpt: e.target.value })}
+                placeholder="Resumen corto para la tarjeta del blog..."
+              />
+            </div>
+
+            <div style={{ marginTop: '14px', marginBottom: '20px' }}>
+              <label className="admin-label">Texto Completo de la Reflexión *</label>
+              <textarea
+                required
+                className="admin-textarea"
+                style={{ minHeight: '220px' }}
+                value={noticiaData.contenidoRaw}
+                onChange={e => setNoticiaData({ ...noticiaData, contenidoRaw: e.target.value })}
+                placeholder="Escribe aquí tu reflexión completa..."
+              />
             </div>
 
             <div className="admin-sticky-bottom">
-              <button type="button" className="admin-btn-secondary" onClick={() => setEditingNoticia(null)}>Cancelar</button>
-              <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 24px' }}>Guardar Artículo</button>
+              <button type="button" className="admin-btn-secondary" onClick={() => setEditingNoticia(null)}>
+                Cancelar
+              </button>
+              <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 24px' }}>
+                Publicar en el Blog
+              </button>
             </div>
           </form>
         )}
 
-        {/* VIEW: BUSINESS DIRECTORY (Guests) */}
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 5: EPISODES (ConBERTAciones ENTREVISTAS)
+           ══════════════════════════════════════════════════════════════════ */}
+        {activeMenu === 'episodios' && !editingEp && (
+          <div>
+            <div className="admin-section-header">
+              <div>
+                <h2 className="admin-section-title">ConBERTAciones · Entrevistas ({episodes.length})</h2>
+                <p style={{ fontSize: '13px', color: '#6B7280', margin: '2px 0 0 0' }}>
+                  Sincroniza automáticamente con Spotify for Creators o agrega entrevistas manualmente.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {onSyncSpotify && (
+                  <button
+                    type="button"
+                    onClick={onSyncSpotify}
+                    disabled={isSyncingSpotify}
+                    className="admin-btn-primary"
+                    style={{ width: 'auto', padding: '0 14px', height: '40px', background: '#1DB954', display: 'flex', gap: '6px', alignItems: 'center' }}
+                  >
+                    <UploadCloud size={16} /> {isSyncingSpotify ? 'Sincronizando...' : 'Sincronizar Spotify'}
+                  </button>
+                )}
+                <button
+                  className="admin-btn-primary"
+                  style={{ width: 'auto', padding: '0 16px', height: '40px', display: 'flex', gap: '8px', alignItems: 'center' }}
+                  onClick={() => {
+                    setFormData({
+                      id: '',
+                      title: '',
+                      host: 'Berta Weyenberg',
+                      duration: '30:00',
+                      color: 'purple',
+                      art: '/cover_art_games.png',
+                      audioUrl: '',
+                      spotifyUrl: '',
+                      audioFile: null,
+                      audioFileName: '',
+                      description: '',
+                      releaseDate: new Date().toISOString().split('T')[0],
+                    });
+                    setEditingEp('new');
+                  }}
+                >
+                  <Plus size={18} /> Nueva Entrevista
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {episodes.map(ep => (
+                <div key={ep.id} className="admin-item-card">
+                  <img src={ep.art || '/cover_art_games.png'} className="admin-item-img" alt={ep.title} />
+                  <div className="admin-item-info">
+                    <h4 className="admin-item-title">{ep.title}</h4>
+                    <span className="admin-item-subtitle">{ep.host} • {ep.duration} {ep.releaseDate ? `• ${ep.releaseDate}` : ''}</span>
+                    <span className="admin-badge-success">Publicado</span>
+                  </div>
+                  <div className="admin-item-actions">
+                    <button className="admin-action-btn" onClick={() => { setFormData(ep); setEditingEp(ep.id); }}>
+                      <Edit2 size={18} color="#4B5563" />
+                    </button>
+                    <button
+                      className="admin-action-btn error"
+                      onClick={() => {
+                        if (window.confirm('¿Borrar episodio?')) {
+                          onDelete(ep.id);
+                          triggerAdminToast('Episodio eliminado', 'error');
+                        }
+                      }}
+                    >
+                      <Trash2 size={18} color="#EF4444" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeMenu === 'episodios' && editingEp && (
+          <form className="admin-form-card" onSubmit={handleSaveEp}>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>
+              {editingEp === 'new' ? 'Nueva Entrevista de ConBERTAciones' : 'Editar Entrevista'}
+            </h3>
+
+            <div className="admin-grid-2">
+              <div>
+                <label className="admin-label">Título del Episodio *</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  required
+                  value={formData.title}
+                  onChange={e => setFormData({ ...formData, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="admin-label">Invitado(a) / Host *</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  required
+                  value={formData.host}
+                  onChange={e => setFormData({ ...formData, host: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="admin-grid-2" style={{ marginTop: '14px' }}>
+              <div>
+                <label className="admin-label">Duración (ej. 32:15)</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={formData.duration || ''}
+                  onChange={e => setFormData({ ...formData, duration: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="admin-label">Enlace en Spotify (Opcional)</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={formData.spotifyUrl || ''}
+                  onChange={e => setFormData({ ...formData, spotifyUrl: e.target.value })}
+                  placeholder="https://open.spotify.com/episode/..."
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: '14px' }}>
+              <label className="admin-label">Portada del Episodio</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="admin-input"
+                style={{ marginBottom: '8px' }}
+                onChange={e => handleSingleImageUpload(e, res => setFormData({ ...formData, art: res }))}
+              />
+              <input
+                type="text"
+                className="admin-input"
+                value={formData.art || ''}
+                onChange={e => setFormData({ ...formData, art: e.target.value })}
+                placeholder="O pega enlace URL de imagen"
+              />
+            </div>
+
+            <div style={{ marginTop: '14px' }}>
+              <label className="admin-label">Enlace de Audio Directo (MP3 / Streaming)</label>
+              <input
+                type="text"
+                className="admin-input"
+                value={formData.audioUrl || ''}
+                onChange={e => setFormData({ ...formData, audioUrl: e.target.value })}
+                placeholder="https://..."
+              />
+            </div>
+
+            <div style={{ marginTop: '14px', marginBottom: '20px' }}>
+              <label className="admin-label">Descripción de la Entrevista</label>
+              <textarea
+                className="admin-textarea"
+                value={formData.description || ''}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+
+            <div className="admin-sticky-bottom">
+              <button type="button" className="admin-btn-secondary" onClick={() => setEditingEp(null)}>
+                Cancelar
+              </button>
+              <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 24px' }}>
+                Guardar Entrevista
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 6: UNDER THE UMBRELLA (LISTA COMPLETA DE REFLEXIONES BILINGÜES)
+           ══════════════════════════════════════════════════════════════════ */}
+        {activeMenu === 'reflexiones' && !editingReflection && (
+          <div>
+            <div className="admin-section-header">
+              <div>
+                <h2 className="admin-section-title">Under the Umbrella · Reflexiones Bilingües ({reflections.length})</h2>
+                <p style={{ fontSize: '13px', color: '#6B7280', margin: '2px 0 0 0' }}>
+                  Administra todas las cápsulas y reflexiones bilingües (Español / Inglés).
+                </p>
+              </div>
+              <button
+                className="admin-btn-primary"
+                style={{ width: 'auto', padding: '0 16px', height: '40px', display: 'flex', gap: '8px', alignItems: 'center' }}
+                onClick={() => {
+                  setReflectionForm({
+                    id: '',
+                    titleEs: '',
+                    titleEn: '',
+                    contentEsRaw: '',
+                    contentEnRaw: '',
+                    audioEs: '',
+                    audioEn: '',
+                    durationEs: '3:00',
+                    durationEn: '3:00',
+                    spotifyUrlEs: '',
+                    spotifyUrlEn: '',
+                    videoEs: '',
+                    videoEn: '',
+                    thumbnail: '/cover_art_games.png',
+                    releaseDate: new Date().toISOString().split('T')[0],
+                  });
+                  setEditingReflection('new');
+                }}
+              >
+                <Plus size={18} /> Nueva Reflexión (ES/EN)
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {reflections.map(ref => (
+                <div key={ref.id} className="admin-item-card">
+                  <img src={ref.thumbnail || '/cover_art_games.png'} className="admin-item-img" alt={ref.titleEs || ref.titleEn} />
+                  <div className="admin-item-info">
+                    <h4 className="admin-item-title">🇪🇸 {ref.titleEs || 'Sin título ES'}</h4>
+                    <span className="admin-item-subtitle">🇺🇸 {ref.titleEn || 'No EN title'} • {ref.releaseDate || ''}</span>
+                    <span className="admin-badge-success">ES / EN Bilingüe</span>
+                  </div>
+                  <div className="admin-item-actions">
+                    <button
+                      className="admin-action-btn"
+                      onClick={() => {
+                        setReflectionForm({
+                          id: ref.id,
+                          titleEs: ref.titleEs || '',
+                          titleEn: ref.titleEn || '',
+                          contentEsRaw: ref.rawEs || htmlToPlainText(ref.contentEs || ''),
+                          contentEnRaw: ref.rawEn || htmlToPlainText(ref.contentEn || ''),
+                          audioEs: ref.audioEs || '',
+                          audioEn: ref.audioEn || '',
+                          durationEs: ref.durationEs || '3:00',
+                          durationEn: ref.durationEn || '3:00',
+                          spotifyUrlEs: ref.spotifyUrlEs || '',
+                          spotifyUrlEn: ref.spotifyUrlEn || '',
+                          videoEs: ref.videoEs || '',
+                          videoEn: ref.videoEn || '',
+                          thumbnail: ref.thumbnail || '/cover_art_games.png',
+                          releaseDate: ref.releaseDate || new Date().toISOString().split('T')[0],
+                        });
+                        setEditingReflection(ref.id);
+                      }}
+                    >
+                      <Edit2 size={18} color="#4B5563" />
+                    </button>
+                    <button
+                      className="admin-action-btn error"
+                      onClick={() => handleDeleteReflectionItem(ref.id)}
+                    >
+                      <Trash2 size={18} color="#EF4444" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeMenu === 'reflexiones' && editingReflection && (
+          <form className="admin-form-card" onSubmit={handleSaveReflectionItem}>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '18px' }}>
+              {editingReflection === 'new' ? 'Nueva Reflexión Under the Umbrella (ES/EN)' : 'Editar Reflexión Bilingüe'}
+            </h3>
+
+            <div className="admin-grid-2" style={{ marginBottom: '16px' }}>
+              <div>
+                <label className="admin-label">Fecha de Publicación</label>
+                <input
+                  type="date"
+                  className="admin-input"
+                  value={reflectionForm.releaseDate}
+                  onChange={e => setReflectionForm({ ...reflectionForm, releaseDate: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="admin-label">Miniatura / Portada</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="admin-input"
+                  onChange={e => handleSingleImageUpload(e, res => setReflectionForm({ ...reflectionForm, thumbnail: res }))}
+                />
+              </div>
+            </div>
+
+            <div className="admin-subcard">
+              <h4 className="admin-subtitle">🇪🇸 Versión en Español (Bajo la Sombrilla)</h4>
+              <div className="admin-grid-2">
+                <div>
+                  <label className="admin-label">Título en Español</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={reflectionForm.titleEs}
+                    onChange={e => setReflectionForm({ ...reflectionForm, titleEs: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Enlace Audio / Spotify (ES)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={reflectionForm.audioEs}
+                    onChange={e => setReflectionForm({ ...reflectionForm, audioEs: e.target.value })}
+                    placeholder="URL de audio MP3 o preview..."
+                  />
+                </div>
+              </div>
+              <div style={{ marginTop: '12px' }}>
+                <label className="admin-label">Texto / Reflexión en Español</label>
+                <textarea
+                  className="admin-textarea"
+                  rows={4}
+                  value={reflectionForm.contentEsRaw}
+                  onChange={e => setReflectionForm({ ...reflectionForm, contentEsRaw: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="admin-subcard">
+              <h4 className="admin-subtitle">🇺🇸 Versión en Inglés (Under the Umbrella)</h4>
+              <div className="admin-grid-2">
+                <div>
+                  <label className="admin-label">Title in English</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={reflectionForm.titleEn}
+                    onChange={e => setReflectionForm({ ...reflectionForm, titleEn: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Audio / Spotify URL (EN)</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={reflectionForm.audioEn}
+                    onChange={e => setReflectionForm({ ...reflectionForm, audioEn: e.target.value })}
+                    placeholder="MP3 or preview URL..."
+                  />
+                </div>
+              </div>
+              <div style={{ marginTop: '12px' }}>
+                <label className="admin-label">Reflection Text in English</label>
+                <textarea
+                  className="admin-textarea"
+                  rows={4}
+                  value={reflectionForm.contentEnRaw}
+                  onChange={e => setReflectionForm({ ...reflectionForm, contentEnRaw: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="admin-sticky-bottom">
+              <button type="button" className="admin-btn-secondary" onClick={() => setEditingReflection(null)}>
+                Cancelar
+              </button>
+              <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 24px' }}>
+                Guardar Reflexión
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 7: INVITADOS DEL PODCAST
+           ══════════════════════════════════════════════════════════════════ */}
         {activeMenu === 'negocios' && !editingGuest && (
           <div>
             <div className="admin-section-header">
-              <h2 className="admin-section-title">Directorio de Negocios</h2>
-              <button className="admin-btn-primary" style={{ width: 'auto', padding: '0 16px', height: '40px', display: 'flex', gap: '8px', alignItems: 'center' }} onClick={() => { setGuestData({ id: '', name: '', business: '', bio: '', bgPhoto: '', facebook: '', instagram: '', linkedin: '', youtube: '', website: '' }); setEditingGuest('new'); }}>
-                <Plus size={18} /> Nuevo
+              <h2 className="admin-section-title">Invitados del Podcast ({guests.length})</h2>
+              <button
+                className="admin-btn-primary"
+                style={{ width: 'auto', padding: '0 16px', height: '40px', display: 'flex', gap: '8px', alignItems: 'center' }}
+                onClick={() => {
+                  setGuestData({
+                    id: '',
+                    name: '',
+                    business: '',
+                    businessEn: '',
+                    bio: '',
+                    bioEn: '',
+                    bgPhoto: '',
+                    facebook: '',
+                    instagram: '',
+                    linkedin: '',
+                    youtube: '',
+                    website: '',
+                  });
+                  setEditingGuest('new');
+                }}
+              >
+                <Plus size={18} /> Nuevo Invitado
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {guests.map(g => (
                 <div key={g.id} className="admin-item-card">
-                  <img src={g.bgPhoto || 'https://via.placeholder.com/64'} className="admin-item-img" style={{ borderRadius: '50%' }} alt={g.name} />
+                  <img src={g.bgPhoto || '/berta.jpeg'} className="admin-item-img" style={{ borderRadius: '50%' }} alt={g.name} />
                   <div className="admin-item-info">
                     <h4 className="admin-item-title">{g.name}</h4>
-                    <span className="admin-item-subtitle">{g.business || 'Sin Negocio'}</span>
+                    <span className="admin-item-subtitle">{g.business || 'Invitado Especial'}</span>
                   </div>
                   <div className="admin-item-actions">
-                    <button className="admin-action-btn" onClick={() => { setGuestData(g); setEditingGuest(g.id); }}><Edit2 size={18} color="#4B5563" /></button>
-                    <button className="admin-action-btn error" onClick={() => { if(window.confirm('¿Borrar invitado?')) { onDeleteGuest(g.id); triggerAdminToast('Eliminado', 'error'); } }}><Trash2 size={18} color="#EF4444" /></button>
+                    <button className="admin-action-btn" onClick={() => { setGuestData(g); setEditingGuest(g.id); }}>
+                      <Edit2 size={18} color="#4B5563" />
+                    </button>
+                    <button
+                      className="admin-action-btn error"
+                      onClick={() => {
+                        if (window.confirm('¿Borrar invitado?')) {
+                          onDeleteGuest(g.id);
+                          triggerAdminToast('Invitado eliminado', 'error');
+                        }
+                      }}
+                    >
+                      <Trash2 size={18} color="#EF4444" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -551,303 +2154,425 @@ const AdminView = ({
           </div>
         )}
 
-        {/* VIEW: GUEST FORM */}
         {activeMenu === 'negocios' && editingGuest && (
           <form className="admin-form-card" onSubmit={handleSaveGuest}>
-            <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '20px' }}>{editingGuest === 'new' ? 'Nuevo Perfil o Negocio' : 'Editar Perfil'}</h3>
-            <div style={{ marginBottom: '16px' }}>
-              <label className="admin-label">Nombre</label>
-              <input type="text" className="admin-input" required value={guestData.name} onChange={e => setGuestData({...guestData, name: e.target.value})} />
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px' }}>
+              {editingGuest === 'new' ? 'Nuevo Invitado del Podcast' : 'Editar Invitado'}
+            </h3>
+            <div className="admin-grid-2">
+              <div>
+                <label className="admin-label">Nombre Completo *</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  required
+                  value={guestData.name}
+                  onChange={e => setGuestData({ ...guestData, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="admin-label">Organización / Cargo (ES)</label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={guestData.business || ''}
+                  onChange={e => setGuestData({ ...guestData, business: e.target.value })}
+                />
+              </div>
             </div>
-            <div style={{ marginBottom: '16px' }}>
-              <label className="admin-label">Negocio / Cargo</label>
-              <input type="text" className="admin-input" value={guestData.business} onChange={e => setGuestData({...guestData, business: e.target.value})} placeholder="Ej. CEO de Envision Radio" />
+
+            <div style={{ marginTop: '14px' }}>
+              <label className="admin-label">Fotografía del Invitado</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="admin-input"
+                onChange={e => handleSingleImageUpload(e, res => setGuestData({ ...guestData, bgPhoto: res }))}
+              />
             </div>
-            <div style={{ marginBottom: '16px' }}>
-              <label className="admin-label">Logo / Fotografía</label>
-              {guestData.bgPhoto ? (
-                <div style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', marginBottom: '8px' }}>
-                  <img src={guestData.bgPhoto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Avatar" />
-                  <button type="button" onClick={() => setGuestData({...guestData, bgPhoto: ''})} style={{ position: 'absolute', top: '28px', left: '28px', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14}/></button>
-                </div>
-              ) : (
-                <label className="admin-dropzone" style={{ height: '80px', padding: '10px' }}>
-                  <span style={{ fontSize: '12px', color: '#6B7280' }}>Subir Foto</span>
-                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, 'guest')} />
-                </label>
-              )}
+
+            <div style={{ marginTop: '14px' }}>
+              <label className="admin-label">Biografía / Resumen de la Entrevista</label>
+              <textarea
+                className="admin-textarea"
+                style={{ minHeight: '80px' }}
+                value={guestData.bio || ''}
+                onChange={e => setGuestData({ ...guestData, bio: e.target.value })}
+              />
             </div>
-            <div style={{ marginBottom: '16px' }}>
-              <label className="admin-label">Biografía</label>
-              <textarea className="admin-textarea" style={{ minHeight: '80px' }} value={guestData.bio} onChange={e => setGuestData({...guestData, bio: e.target.value})}></textarea>
+
+            <div className="admin-grid-2" style={{ marginTop: '14px', marginBottom: '20px' }}>
+              <input
+                type="text"
+                className="admin-input"
+                placeholder="Instagram URL"
+                value={guestData.instagram || ''}
+                onChange={e => setGuestData({ ...guestData, instagram: e.target.value })}
+              />
+              <input
+                type="text"
+                className="admin-input"
+                placeholder="Sitio Web / Facebook URL"
+                value={guestData.website || ''}
+                onChange={e => setGuestData({ ...guestData, website: e.target.value })}
+              />
             </div>
-            
-            <h4 style={{ fontSize: '14px', fontWeight: 600, marginTop: '24px', marginBottom: '8px', color: '#374151' }}>Enlaces</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-              <input type="text" className="admin-input" placeholder="Instragram URL" value={guestData.instagram} onChange={e => setGuestData({...guestData, instagram: e.target.value})} />
-              <input type="text" className="admin-input" placeholder="LinkedIn URL" value={guestData.linkedin} onChange={e => setGuestData({...guestData, linkedin: e.target.value})} />
-            </div>
-            <input type="text" className="admin-input" style={{ marginBottom: '24px' }} placeholder="Sitio Web" value={guestData.website} onChange={e => setGuestData({...guestData, website: e.target.value})} />
-            
+
             <div className="admin-sticky-bottom">
-              <button type="button" className="admin-btn-secondary" onClick={() => setEditingGuest(null)}>Cancelar</button>
-              <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 24px' }}>Guardar</button>
+              <button type="button" className="admin-btn-secondary" onClick={() => setEditingGuest(null)}>
+                Cancelar
+              </button>
+              <button type="submit" className="admin-btn-primary" style={{ width: 'auto', padding: '0 24px' }}>
+                Guardar Invitado
+              </button>
             </div>
           </form>
         )}
 
-        {/* VIEW: PROFILE */}
-        {activeMenu === 'perfil' && (
-          <div className="admin-form-card">
-            <h2 className="admin-section-title">Perfil & Public Speaker</h2>
-            <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '24px' }}>Actualiza tus redes sociales públicas. Estos enlaces aparecerán en tu tarjeta de presentación móvil.</p>
-            
-            {['instagram', 'linkedin', 'facebook', 'youtube', 'website'].map(net => (
-              <div key={net} style={{ marginBottom: '16px' }}>
-                <label className="admin-label" style={{ textTransform: 'capitalize' }}>{net}</label>
-                <input type="text" className="admin-input" value={localProfile[net] || ''} onChange={e => setLocalProfile({...localProfile, [net]: e.target.value})} placeholder={`https://${net}.com/...`} />
-              </div>
-            ))}
-            
-            <button className="admin-btn-primary" style={{ marginTop: '16px' }} onClick={() => { onUpdateProfile(localProfile); triggerAdminToast('Perfil Publicado', 'success'); }}>Guardar Perfil</button>
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 8: SOLICITUDES DE CHARLAS & DAME LA LETRA (COMUNIDAD)
+           ══════════════════════════════════════════════════════════════════ */}
+        {activeMenu === 'comunidad' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="admin-form-card">
+              <h2 className="admin-section-title" style={{ marginBottom: '12px' }}>
+                🎤 Solicitudes para Agendar Charlas ({speakerBookings.length})
+              </h2>
+              {speakerBookings.length === 0 ? (
+                <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                  Aún no hay solicitudes registradas desde el formulario de Charlas.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {speakerBookings.map(b => (
+                    <div key={b.id} className="admin-subcard" style={{ marginBottom: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                        <strong>{b.name} ({b.organization || 'Particular'})</strong>
+                        <span className="admin-badge-success">{b.type}</span>
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#4B5563', marginTop: '4px' }}>
+                        📧 {b.email} • 📅 Fecha tentativa: {b.date || 'Por definir'}
+                      </div>
+                      {b.message && (
+                        <p style={{ fontSize: '13px', color: '#1F2937', marginTop: '8px', marginBottom: 0 }}>
+                          "{b.message}"
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="admin-form-card">
+              <h2 className="admin-section-title" style={{ marginBottom: '12px' }}>
+                💬 Mensajes de "Dame La Letra" ({dameSubmissions.length})
+              </h2>
+              {dameSubmissions.length === 0 ? (
+                <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                  Aún no hay preguntas ni historias enviadas en Dame La Letra.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {dameSubmissions.map(sub => (
+                    <div key={sub.id} className="admin-subcard" style={{ marginBottom: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <strong>{sub.name}</strong>
+                        <span style={{ fontSize: '12px', color: '#6B7280' }}>{sub.type} • {sub.date}</span>
+                      </div>
+                      <p style={{ fontSize: '13px', color: '#1F2937', margin: '6px 0 0 0' }}>{sub.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
-        {/* VIEW: BACKUP */}
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 9: PERFIL & REDES SOCIALES
+           ══════════════════════════════════════════════════════════════════ */}
+        {activeMenu === 'perfil' && (
+          <form className="admin-form-card" onSubmit={handleSaveHomeAndProfile}>
+            <h2 className="admin-section-title">Perfil Público & Redes Sociales</h2>
+            <p style={{ fontSize: '14px', color: '#6B7280', marginBottom: '20px' }}>
+              Actualiza tus enlaces de redes sociales y las estadísticas que se muestran en tu tarjeta de perfil.
+            </p>
+
+            <div className="admin-subcard">
+              <h3 className="admin-subtitle">Estadísticas del Perfil</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label className="admin-label">Episodios</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.statsEpisodes || '50+'}
+                    onChange={e => setLocalProfile({ ...localProfile, statsEpisodes: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Comunidad</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.statsCommunity || '12k'}
+                    onChange={e => setLocalProfile({ ...localProfile, statsCommunity: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="admin-label">Temporadas</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile.statsSeasons || '5'}
+                    onChange={e => setLocalProfile({ ...localProfile, statsSeasons: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="admin-subcard">
+              <h3 className="admin-subtitle">Enlaces a Redes Sociales</h3>
+              {['facebook', 'instagram', 'youtube', 'linkedin', 'website'].map(net => (
+                <div key={net} style={{ marginBottom: '14px' }}>
+                  <label className="admin-label" style={{ textTransform: 'capitalize' }}>{net}</label>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    value={localProfile[net] || ''}
+                    onChange={e => setLocalProfile({ ...localProfile, [net]: e.target.value })}
+                    placeholder={`https://${net}.com/...`}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <button type="submit" className="admin-btn-primary">
+              Guardar Perfil y Redes
+            </button>
+          </form>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            VIEW 10: BACKUP / RESPALDOS
+           ══════════════════════════════════════════════════════════════════ */}
         {activeMenu === 'backup' && (
           <div className="admin-form-card" style={{ textAlign: 'center', padding: '40px 24px' }}>
-            <div style={{ width: '64px', height: '64px', background: '#DBEAFE', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-              <Download size={32} color="#2563EB" />
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                background: '#F3E8FF',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
+              }}
+            >
+              <Download size={32} color="#792359" />
             </div>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Copia de Seguridad</h2>
-            <p style={{ fontSize: '14px', color: '#4B5563', marginBottom: '32px' }}>Toda la información se guarda de forma segura en tu dispositivo. Descarga un archivo con todos tus datos (episodios, invitados, configuración) para tener respaldo.</p>
-            
-            <button className="admin-btn-primary" onClick={executeBackup} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}>
-              <Download size={20} /> Exportar Mis Datos (JSON)
+            <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px' }}>
+              Copia de Seguridad Completa
+            </h2>
+            <p style={{ fontSize: '14px', color: '#4B5563', maxWidth: '520px', margin: '0 auto 28px auto' }}>
+              Exporta o restaura toda la información del sitio: configuración de Inicio, The Weyenberg Statement, Blog de Berta, Entrevistas, Reflexiones e Invitados.
+            </p>
+
+            <button
+              className="admin-btn-primary"
+              onClick={executeBackup}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '14px' }}
+            >
+              <Download size={20} /> Exportar Todos Mis Datos (JSON)
             </button>
-            <label className="admin-btn-secondary" style={{ width: '100%', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}>
-              <Upload size={20} /> Importar Datos Anteriores (JSON)
-              <input type="file" accept=".json" style={{ display: 'none' }} onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  const reader = new FileReader();
-                  reader.onload = async (evt) => {
-                    try {
-                      const data = JSON.parse(evt.target.result);
-                      if (data.episodes && data.guests && data.reflections) {
-                        if (window.confirm('Esto reemplazará todos tus datos actuales. ¿Deseas continuar?')) {
-                          if (onImportBackup) {
-                            await onImportBackup(data);
-                            triggerAdminToast('Datos importados con éxito', 'success');
-                          }
-                        }
-                      } else {
-                        triggerAdminToast('El archivo no parece ser un backup válido', 'error');
+            <label
+              className="admin-btn-secondary"
+              style={{ width: '100%', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer' }}
+            >
+              <Upload size={20} /> Importar Respaldo (JSON)
+              <input
+                type="file"
+                accept=".json"
+                style={{ display: 'none' }}
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = async evt => {
+                      try {
+                        const imported = JSON.parse(evt.target.result);
+                        await onImportBackup(imported);
+                        triggerAdminToast('Datos restaurados con éxito', 'success');
+                      } catch {
+                        triggerAdminToast('Archivo de respaldo inválido', 'error');
                       }
-                    } catch (err) {
-                      triggerAdminToast('Error al leer el archivo de backup', 'error');
-                    }
-                  };
-                  reader.readAsText(file);
-                }
-              }} />
+                    };
+                    reader.readAsText(file);
+                  }
+                }}
+              />
             </label>
           </div>
         )}
-
       </main>
 
-      {/* TOAST SYSTEM */}
       {adminToast && <Toast message={adminToast.message} type={adminToast.type} />}
     </div>
   );
 };
 
-// --- HELPER COMPONENTS ---
-
+// --- SUB-COMPONENTS ---
 const SidebarItem = ({ icon, label, active, onClick }) => (
-  <button className={`admin-sidebar-item ${active ? 'active' : ''}`} onClick={onClick}>
-    <span className="admin-sidebar-icon">{icon}</span>
-    <span className="admin-sidebar-text">{label}</span>
+  <button onClick={onClick} className={`admin-sidebar-item ${active ? 'active' : ''}`}>
+    {icon} <span>{label}</span>
   </button>
 );
 
-const StatCard = ({ title, value, icon }) => (
-  <div style={{ background: '#FFFFFF', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ fontSize: '14px', color: '#4B5563', fontWeight: 500 }}>{title}</span>
-      {icon}
+const StatCard = ({ title, value, icon, onClick }) => (
+  <div
+    onClick={onClick}
+    style={{
+      background: '#FFFFFF',
+      padding: '18px',
+      borderRadius: '14px',
+      boxShadow: '0 2px 8px rgba(121, 35, 89, 0.06)',
+      border: '1px solid #F3E8FF',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '14px',
+      cursor: onClick ? 'pointer' : 'default',
+    }}
+  >
+    <div style={{ padding: '12px', background: '#FDF4FF', borderRadius: '12px' }}>{icon}</div>
+    <div>
+      <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', lineHeight: '1.1' }}>{value}</div>
+      <div style={{ fontSize: '12px', color: '#6B7280', marginTop: '3px', fontWeight: 600 }}>{title}</div>
     </div>
-    <span style={{ fontSize: '28px', fontWeight: 800, color: '#111827' }}>{value}</span>
   </div>
 );
 
 const Toast = ({ message, type }) => {
+  const bg = type === 'success' ? '#10B981' : type === 'warning' ? '#F59E0B' : '#EF4444';
   const Icon = type === 'success' ? CheckCircle : type === 'warning' ? AlertTriangle : XCircle;
-  const color = type === 'success' ? '#10B981' : type === 'warning' ? '#F59E0B' : '#EF4444';
-  
   return (
-    <div className="admin-toast">
-      <Icon size={20} color={color} />
-      <span style={{ fontSize: '14px', fontWeight: 500 }}>{message}</span>
+    <div
+      style={{
+        position: 'fixed',
+        top: '16px',
+        right: '16px',
+        zIndex: 9999,
+        background: bg,
+        color: '#FFFFFF',
+        padding: '12px 18px',
+        borderRadius: '12px',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        fontWeight: 600,
+        fontSize: '14px',
+      }}
+    >
+      <Icon size={20} color="#FFFFFF" />
+      <span>{message}</span>
     </div>
   );
 };
 
-// --- CSS IN JS (Scoped) ---
-
 const AdminStyles = () => (
   <style>{`
+    .admin-app-layout, .admin-login-layout {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #FAF5FF;
+      color: #1F2937;
+      min-height: 100vh;
+      width: 100%;
+      position: absolute;
+      top: 0; left: 0; z-index: 1000;
+    }
     .admin-login-layout {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #F9FAFB; z-index: 9999;
-      display: flex; justify-content: center; align-items: center; padding: 20px;
-      font-family: 'Inter', sans-serif;
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+      background: linear-gradient(135deg, #792359 0%, #3b0764 100%);
     }
     .admin-login-card {
-      width: 100%; max-width: 400px; background: #FFFFFF;
-      border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      padding: 32px 24px; text-align: left;
+      background: #FFFFFF; width: 100%; max-width: 430px; padding: 32px 26px;
+      border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     }
-    
-    .admin-app-layout {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #F9FAFB; z-index: 1000;
-      display: flex; flex-direction: column;
-      font-family: 'Inter', sans-serif;
-    }
-
     .admin-header {
-      height: 64px; width: 100%; background: #ffffff;
-      position: fixed; top: 0; left: 0; right: 0;
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); z-index: 40;
+      height: 60px; background: #FFFFFF; border-bottom: 1px solid #F3E8FF;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; position: sticky; top: 0; z-index: 40;
     }
-    @media(min-width: 600px) {
-      .admin-header { position: absolute; border-top-left-radius: 32px; border-top-right-radius: 32px; }
-    }
-    .admin-header-title { font-size: 18px; font-weight: 600; color: #111827; }
-    .admin-icon-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
-
-    .admin-sidebar {
-      position: fixed; top: 0; bottom: 0; left: 0; width: 280px;
-      background: #FFFFFF; box-shadow: 20px 0 25px -5px rgba(0,0,0,0.1);
-      transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 50; display: flex; flex-direction: column;
-    }
-    .admin-sidebar.open { transform: translateX(0); }
-    @media(min-width: 600px) {
-      .admin-sidebar { position: absolute; border-top-left-radius: 32px; border-bottom-left-radius: 32px; }
-    }
+    .admin-header-title { font-size: 17px; font-weight: 800; color: #792359; }
+    .admin-icon-btn { background: none; border: none; padding: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    
     .admin-sidebar-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4); z-index: 45; opacity: 0; pointer-events: none;
-      transition: opacity 0.3s;
-    }
-    @media(min-width: 600px) {
-      .admin-sidebar-overlay { position: absolute; }
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 45;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
     }
     .admin-sidebar-overlay.open { opacity: 1; pointer-events: auto; }
-    
+    .admin-sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: #FFFFFF;
+      z-index: 50; transform: translateX(-100%); transition: transform 0.25s ease;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+    }
+    .admin-sidebar.open { transform: translateX(0); }
     .admin-sidebar-item {
-      width: 100%; height: 48px; display: flex; align-items: center; gap: 12px;
-      padding-left: 16px; background: none; border: none; cursor: pointer;
-      border-radius: 6px; border-left: 4px solid transparent; transition: all 0.2s;
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px;
+      border: none; background: none; border-radius: 10px; font-size: 14px; font-weight: 600;
+      color: #4B5563; cursor: pointer; text-align: left; transition: all 0.15s;
     }
-    .admin-sidebar-item.active { background: #EFF6FF; border-left-color: #2563EB; }
-    .admin-sidebar-text { font-size: 15px; font-weight: 500; color: #374151; }
-    .admin-sidebar-icon { color: #6B7280; display: flex; align-items: center; }
-    .admin-sidebar-item.active .admin-sidebar-text, .admin-sidebar-item.active .admin-sidebar-icon { color: #2563EB; }
+    .admin-sidebar-item:hover { background: #FDF4FF; color: #792359; }
+    .admin-sidebar-item.active { background: linear-gradient(135deg, #792359, #c026d3); color: #FFFFFF; }
 
-    .admin-main { flex: 1; margin-top: 64px; padding: 16px; overflow-y: auto; padding-bottom: 80px; }
-
-    .admin-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .admin-section-title { font-size: 20px; font-weight: 700; color: #111827; }
-
-    .admin-item-card {
-      width: 100%; background: #ffffff; border-radius: 8px; border: 1px solid #E5E7EB;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05); padding: 16px;
-      display: flex; align-items: flex-start;
-    }
-    .admin-item-img { width: 64px; height: 64px; border-radius: 6px; object-fit: cover; margin-right: 16px; background: #E5E7EB; flex-shrink: 0; }
-    .admin-item-info { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .admin-item-title { font-size: 16px; font-weight: 600; color: #111827; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px; }
-    .admin-item-subtitle { font-size: 14px; color: #6B7280; margin-bottom: 8px; }
-    .admin-badge-success { background: #D1FAE5; color: #065F46; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 9999px; display: inline-block; width: fit-content; }
+    .admin-main { padding: 20px 16px 80px 16px; max-width: 960px; margin: 0 auto; }
+    .admin-section-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+    .admin-section-title { font-size: 20px; font-weight: 800; color: #111827; margin: 0; }
     
-    .admin-item-actions { display: flex; flex-direction: column; gap: 8px; margin-left: 8px; }
-    .admin-action-btn { width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; background: none; border: none; cursor: pointer; border-radius: 6px; }
-    .admin-action-btn:hover { background: #F3F4F6; }
-    .admin-action-btn.error:hover { background: #FEE2E2; }
+    .admin-form-card { background: #FFFFFF; padding: 24px; border-radius: 16px; box-shadow: 0 4px 16px rgba(121, 35, 89, 0.06); border: 1px solid #F3E8FF; }
+    .admin-subcard { background: #FDFBFF; border: 1px solid #F3E8FF; border-radius: 12px; padding: 18px; margin-bottom: 18px; }
+    .admin-subtitle { font-size: 15px; font-weight: 700; color: #792359; margin: 0 0 14px 0; }
+    .admin-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 
-    .admin-form-card { background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-
-    .admin-label { display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px; text-transform: none; }
+    .admin-label { display: block; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 6px; }
     .admin-input {
-      width: 100%; height: 44px; background: #ffffff; border: 1px solid #D1D5DB;
-      padding: 0 12px; font-size: 16px; border-radius: 6px; outline: none; transition: 0.2s; font-family: 'Inter', sans-serif;
+      width: 100%; height: 42px; padding: 0 12px; border: 1px solid #D1D5DB;
+      border-radius: 8px; font-size: 14px; color: #1F2937; background: #FFFFFF;
+      box-sizing: border-box;
     }
-    .admin-input:focus, .admin-textarea:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-    
+    .admin-input:focus, .admin-textarea:focus { outline: none; border-color: #792359; box-shadow: 0 0 0 3px rgba(121, 35, 89, 0.12); }
     .admin-textarea {
-      width: 100%; min-height: 120px; background: #ffffff; border: 1px solid #D1D5DB;
-      padding: 12px; font-size: 16px; border-radius: 6px; outline: none; resize: vertical; transition: 0.2s; font-family: 'Inter', sans-serif;
+      width: 100%; min-height: 96px; padding: 10px 12px; border: 1px solid #D1D5DB;
+      border-radius: 8px; font-size: 14px; color: #1F2937; font-family: inherit; resize: vertical;
+      box-sizing: border-box; line-height: 1.5;
     }
-
-    .admin-dropzone {
-      width: 100%; height: 120px; border: 2px dashed #D1D5DB; border-radius: 8px;
-      background: #F9FAFB; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      cursor: pointer; transition: 0.2s;
-    }
-    .admin-dropzone:hover { background: #F3F4F6; border-color: #9CA3AF; }
 
     .admin-btn-primary {
-      width: 100%; height: 44px; background: #2563EB; color: white;
-      border-radius: 6px; font-weight: 600; font-size: 16px; border: none; cursor: pointer; transition: 0.15s;
+      width: 100%; height: 44px; background: linear-gradient(135deg, #792359, #c026d3); color: #FFFFFF;
+      border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
     }
-    .admin-btn-primary:hover { background: #1D4ED8; }
     .admin-btn-secondary {
-      width: 100%; height: 44px; background: transparent; color: #4B5563;
-      border-radius: 6px; font-weight: 500; font-size: 16px; border: 1px solid #D1D5DB; cursor: pointer; transition: 0.15s;
+      height: 44px; padding: 0 16px; background: #FFFFFF; color: #374151;
+      border: 1px solid #D1D5DB; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;
     }
-    .admin-btn-secondary:hover { background: #F3F4F6; }
+
+    .admin-item-card {
+      background: #FFFFFF; padding: 14px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      border: 1px solid #F3E8FF; display: flex; align-items: center; gap: 14px;
+    }
+    .admin-item-img { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+    .admin-item-info { flex: 1; min-width: 0; }
+    .admin-item-title { font-size: 15px; font-weight: 700; color: #111827; margin: 0 0 4px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .admin-item-subtitle { display: block; font-size: 13px; color: #6B7280; margin-bottom: 4px; }
+    .admin-badge-success { display: inline-block; background: #F3E8FF; color: #792359; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+    .admin-item-actions { display: flex; gap: 6px; }
+    .admin-action-btn { width: 36px; height: 36px; border: 1px solid #F3E8FF; background: #FDFBFF; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
     .admin-sticky-bottom {
-      display: flex; justify-content: flex-end; gap: 12px; padding-top: 24px; border-top: 1px solid #E5E7EB; margin-top: 24px;
-    }
-
-    .admin-separator { position: relative; width: 100%; height: 1px; background: #E5E7EB; margin: 32px 0; text-align: center; }
-    .admin-separator span { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #ffffff; padding: 0 8px; font-size: 12px; color: #6B7280; font-weight: 500; }
-
-    .admin-wysiwyg-toolbar {
-      display: flex; height: 40px; background: #F3F4F6; border: 1px solid #D1D5DB; border-bottom: none; border-radius: 6px 6px 0 0; align-items: center; padding: 0 4px;
-    }
-    .admin-wysiwyg-toolbar button {
-      width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; background: none; border: none; cursor: pointer; border-radius: 4px; color: #4B5563;
-    }
-    .admin-wysiwyg-toolbar button:hover { background: #E5E7EB; }
-    .admin-wysiwyg-content {
-      min-height: 200px; border: 1px solid #D1D5DB; border-radius: 0 0 6px 6px; padding: 16px; font-size: 16px; line-height: 1.6; outline: none; background: #ffffff;
-    }
-    .admin-wysiwyg-content:empty:before { content: attr(placeholder); color: #9CA3AF; pointer-events: none; }
-
-    .admin-toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000;
-      background: #1F2937; color: white; padding: 12px 16px; border-radius: 8px;
-      display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      animation: toastSlideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    @media(min-width: 600px) {
-      .admin-toast { position: absolute; }
-    }
-    @keyframes toastSlideUp {
-      from { transform: translate(-50%, 30px); opacity: 0; }
-      to { transform: translate(-50%, 0); opacity: 1; }
-    }
-    @media(max-width: 600px) {
-      .responsive-flex {
-        grid-template-columns: 1fr !important;
-      }
+      margin-top: 24px; padding-top: 16px; border-top: 1px solid #E5E7EB;
+      display: flex; justify-content: flex-end; gap: 12px;
     }
   `}</style>
 );

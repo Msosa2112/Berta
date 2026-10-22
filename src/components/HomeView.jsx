@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Play, BookOpen, MapPin, ArrowRight, Mic, Award, Mail, ChevronDown, Calendar, Scale, PenTool } from 'lucide-react';
 import { InteractiveHoverButton } from './InteractiveHoverButton';
-import { useLanguage } from '../utils/i18n.jsx';
+import { useLanguage, useAutoTranslated } from '../utils/i18n.jsx';
 
 const BentoGrid = ({ children }) => {
   return <div className="magic-bento-grid reveal">{children}</div>;
@@ -31,6 +31,7 @@ const HomeView = ({
   reflections,
   noticias = [],
   statements = [],
+  profileSettings = {},
   onPlay,
   onOpenPlaylist,
   onOpenReflection,
@@ -44,6 +45,132 @@ const HomeView = ({
   const latestBlog = noticias[0];
   const latestStatement = statements[0];
   const [bioExpanded, setBioExpanded] = useState(false);
+
+  // Customizable Home fields from profileSettings (managed in Admin -> Inicio)
+  const avatarUrl = profileSettings.avatar || '/berta.jpeg';
+  const heroName = profileSettings.heroName || 'Berta Weyenberg';
+  const heroRole = useAutoTranslated(
+    profileSettings.heroRoleEs || 'Host de ConBERTAciones · Reflexiones & Conferencista',
+    profileSettings.heroRoleEn || 'Host of ConBERTAciones · Reflections & Public Speaker',
+    lang
+  );
+  const locationText = profileSettings.location || 'Louisville, Kentucky';
+  const contactEmail = profileSettings.contactEmail || 'info@conbertaciones.com';
+
+  const bioText = useAutoTranslated(
+    profileSettings.bioEs ||
+      'Originaria de Cuba, Berta Polo Weyenberg es educadora galardonada y figura central de la comunidad hispana en Kentucky. A través de sus entrevistas en ConBERTAciones y sus reflexiones bilingües en Under the Umbrella (Bajo la Sombrilla), comparte mensajes de fe, esperanza, educación y propósito.',
+    profileSettings.bioEn ||
+      'Originally from Cuba, Berta Polo Weyenberg is an award-winning educator and central voice in Kentucky’s Hispanic community. Through her interviews on ConBERTAciones and her bilingual reflections on Under the Umbrella (Bajo la Sombrilla), she shares messages of faith, hope, education, and purpose.',
+    lang
+  );
+
+  const spacesTitle = useAutoTranslated(
+    profileSettings.spacesTitleEs || 'Dos espacios pensados para ti:',
+    profileSettings.spacesTitleEn || 'Two spaces designed for you:',
+    lang
+  );
+  const space1Desc = useAutoTranslated(
+    profileSettings.space1DescEs || 'nuestro espacio de entrevistas profundas y conversaciones con invitados especiales.',
+    profileSettings.space1DescEn || 'our space for in-depth interviews and meaningful conversations with special guests.',
+    lang
+  );
+  const space2Desc = useAutoTranslated(
+    profileSettings.space2DescEs || 'cápsulas y reflexiones cortas en Español e Inglés para inspirar tu día a día.',
+    profileSettings.space2DescEn || 'short capsules and reflections in Spanish and English to inspire your everyday life.',
+    lang
+  );
+
+  const cardPodcastTitle = useAutoTranslated(
+    profileSettings.cardPodcastTitleEs || 'ConBERTAciones · Entrevistas',
+    profileSettings.cardPodcastTitleEn || 'ConBERTAciones · Interviews',
+    lang
+  );
+  const cardPodcastDesc = useAutoTranslated(
+    profileSettings.cardPodcastDescEs ||
+      (featuredEp
+        ? `Entrevistas y diálogos con invitados · Última: ${featuredEp.title.split('|')[0]}`
+        : 'Programa de entrevistas y conversaciones profundas con invitados especiales.'),
+    profileSettings.cardPodcastDescEn ||
+      (featuredEp
+        ? `Interviews and dialogues with guests · Latest: ${featuredEp.title.split('|')[0]}`
+        : 'In-depth interviews and inspiring conversations with special guests.'),
+    lang
+  );
+
+  const cardUmbrellaTitle = useAutoTranslated(
+    profileSettings.cardUmbrellaTitleEs || 'Under the Umbrella · Reflexiones',
+    profileSettings.cardUmbrellaTitleEn || 'Under the Umbrella · Reflections',
+    lang
+  );
+  const cardUmbrellaDesc = useAutoTranslated(
+    profileSettings.cardUmbrellaDescEs ||
+      `Cápsulas y reflexiones cortas bilingües (${reflections.length} episodios ES/EN) en lectura y audio para tu día a día.`,
+    profileSettings.cardUmbrellaDescEn ||
+      `Short bilingual capsules and reflections (${reflections.length} ES/EN episodes) in text and audio for your daily life.`,
+    lang
+  );
+
+  const cardSpeakerTitle = useAutoTranslated(
+    profileSettings.cardSpeakerTitleEs || 'Agenda una Charla',
+    profileSettings.cardSpeakerTitleEn || 'Book a Speaking Event',
+    lang
+  );
+  const cardSpeakerDesc = useAutoTranslated(
+    profileSettings.cardSpeakerDescEs || 'Invita a Berta como conferencista para tu escuela, grupo de fe o empresa.',
+    profileSettings.cardSpeakerDescEn || 'Invite Berta as a speaker for your school, faith group, or company.',
+    lang
+  );
+  const speakerBullet1 = useAutoTranslated(
+    profileSettings.speakerBullet1Es || 'Educación de estudiantes e hijos',
+    profileSettings.speakerBullet1En || 'Student & parenting education',
+    lang
+  );
+  const speakerBullet2 = useAutoTranslated(
+    profileSettings.speakerBullet2Es || 'Grupos de damas y grupos de fe',
+    profileSettings.speakerBullet2En || "Women's ministries & faith groups",
+    lang
+  );
+  const speakerBullet3 = useAutoTranslated(
+    profileSettings.speakerBullet3Es || 'Mensaje alentador para empresas',
+    profileSettings.speakerBullet3En || 'Encouraging message for companies',
+    lang
+  );
+
+  const cardStatementTitle = profileSettings.cardStatementTitle || 'The Weyenberg Statement';
+  const cardStatementDesc = useAutoTranslated(
+    profileSettings.cardStatementDescEs ||
+      'Statements de la familia Weyenberg basados en conceptos bíblicos, analizando fenómenos de la actualidad con un lente bíblico.',
+    profileSettings.cardStatementDescEn ||
+      'Statements by the Weyenberg family grounded in biblical concepts, analyzing current phenomena through a biblical lens.',
+    lang
+  );
+
+  const cardBlogTitle = useAutoTranslated(
+    profileSettings.cardBlogTitleEs || 'Blog de Berta · Reflexiones',
+    profileSettings.cardBlogTitleEn || "Berta's Blog · Reflections",
+    lang
+  );
+  const cardBlogDesc = useAutoTranslated(
+    profileSettings.cardBlogDescEs ||
+      'Reflexiones escritas, enseñanzas para la familia y galerías de imágenes compartidas por Berta.',
+    profileSettings.cardBlogDescEn ||
+      'Written reflections, family teachings, and image galleries shared by Berta.',
+    lang
+  );
+
+  const cardConectaTitle = useAutoTranslated(
+    profileSettings.cardConectaTitleEs || 'Conecta con Berta',
+    profileSettings.cardConectaTitleEn || 'Connect with Berta',
+    lang
+  );
+  const cardConectaDesc = useAutoTranslated(
+    profileSettings.cardConectaDescEs ||
+      'Envía tus preguntas para el segmento Dame La Letra, comparte tu testimonio o agenda una conferencia.',
+    profileSettings.cardConectaDescEn ||
+      'Send your questions for the Dame La Letra segment, share your testimony, or book a speaking event.',
+    lang
+  );
 
   return (
     <div className="reveal" style={{ paddingBottom: '40px' }}>
@@ -59,19 +186,16 @@ const HomeView = ({
               style={{ cursor: 'pointer' }}
             >
               <div className="bio-avatar">
-                <img src="/berta.jpeg" alt="Berta Weyenberg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={avatarUrl} alt={heroName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div className="bio-text-block">
-                <h2 className="bio-name">Berta Weyenberg</h2>
+                <h2 className="bio-name">{heroName}</h2>
                 <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--accent-terracotta)', letterSpacing: '0.03em', margin: '4px 0 8px 0' }}>
-                  {tr(
-                    'Host de ConBERTAciones · Reflexiones & Conferencista',
-                    'Host of ConBERTAciones · Reflections & Public Speaker'
-                  )}
+                  {heroRole}
                 </div>
                 <div style={{ display: 'flex', gap: '6px', fontSize: '0.78rem', color: 'var(--text-muted)', alignItems: 'center' }}>
                   <MapPin size={12} color="var(--accent-amber)" />
-                  <span>Louisville, Kentucky</span>
+                  <span>{locationText}</span>
                 </div>
               </div>
               <div className="bio-chevron" style={{ transform: bioExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', flexShrink: 0 }}>
@@ -80,31 +204,18 @@ const HomeView = ({
             </div>
 
             <div className={`bio-collapsible-body${bioExpanded ? ' bio-collapsible-open' : ''}`}>
-              {lang === 'es' ? (
-                <p className="bio-description bio-description-full">
-                  Originaria de Cuba, Berta Polo Weyenberg es educadora galardonada y figura central de la comunidad hispana en Kentucky. A través de sus entrevistas en <strong>ConBERTAciones</strong> y sus reflexiones bilingües en <strong>Under the Umbrella (Bajo la Sombrilla)</strong>, comparte mensajes de fe, esperanza, educación y propósito.
-                </p>
-              ) : (
-                <p className="bio-description bio-description-full">
-                  Originally from Cuba, Berta Polo Weyenberg is an award-winning educator and central voice in Kentucky’s Hispanic community. Through her interviews on <strong>ConBERTAciones</strong> and her bilingual reflections on <strong>Under the Umbrella (Bajo la Sombrilla)</strong>, she shares messages of faith, hope, education, and purpose.
-                </p>
-              )}
+              <p className="bio-description bio-description-full">
+                {bioText}
+              </p>
               <div className="bio-quote">
                 <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <Mic size={16} color="var(--accent-terracotta)" />
-                  {tr('Dos espacios pensados para ti:', 'Two spaces designed for you:')}
+                  {spacesTitle}
                 </strong>
-                {lang === 'es' ? (
-                  <p style={{ marginTop: '4px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                    <strong>🎙️ ConBERTAciones:</strong> nuestro espacio de entrevistas profundas y conversaciones con invitados especiales.<br />
-                    <strong>☂️ Under the Umbrella:</strong> cápsulas y reflexiones cortas en Español e Inglés para inspirar tu día a día.
-                  </p>
-                ) : (
-                  <p style={{ marginTop: '4px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                    <strong>🎙️ ConBERTAciones:</strong> our space for in-depth interviews and meaningful conversations with special guests.<br />
-                    <strong>☂️ Under the Umbrella:</strong> short capsules and reflections in Spanish and English to inspire your everyday life.
-                  </p>
-                )}
+                <p style={{ marginTop: '4px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                  <strong>🎙️ ConBERTAciones:</strong> {space1Desc}<br />
+                  <strong>☂️ Under the Umbrella:</strong> {space2Desc}
+                </p>
               </div>
             </div>
           </div>
@@ -113,18 +224,8 @@ const HomeView = ({
         {/* Card 2: ConBERTAciones · Entrevistas (Span 8) */}
         <BentoCard
           Icon={Mic}
-          name={tr('ConBERTAciones · Entrevistas', 'ConBERTAciones · Interviews')}
-          description={
-            featuredEp
-              ? tr(
-                  `Entrevistas y diálogos con invitados · Última: ${featuredEp.title.split('|')[0]}`,
-                  `Interviews and dialogues with guests · Latest: ${featuredEp.title.split('|')[0]}`
-                )
-              : tr(
-                  'Programa de entrevistas y conversaciones profundas con invitados especiales.',
-                  'In-depth interviews and inspiring conversations with special guests.'
-                )
-          }
+          name={cardPodcastTitle}
+          description={cardPodcastDesc}
           cta={tr('Ver todas las entrevistas', 'View all interviews')}
           className="magic-bento-col-8 glow-purple"
           onClick={() => onNavigate('podcast')}
@@ -212,11 +313,8 @@ const HomeView = ({
         {/* Card 3: Under the Umbrella / Reflections (Span 4) */}
         <BentoCard
           Icon={BookOpen}
-          name={tr('Under the Umbrella · Reflexiones', 'Under the Umbrella · Reflections')}
-          description={tr(
-            `Cápsulas y reflexiones cortas bilingües (${reflections.length} episodios ES/EN) en lectura y audio para tu día a día.`,
-            `Short bilingual capsules and reflections (${reflections.length} ES/EN episodes) in text and audio for your daily life.`
-          )}
+          name={cardUmbrellaTitle}
+          description={cardUmbrellaDesc}
           cta={tr('Ver todas las reflexiones', 'View all reflections')}
           className="magic-bento-col-4 glow-amber"
           onClick={() => onNavigate('umbrella')}
@@ -306,11 +404,8 @@ const HomeView = ({
         {/* Card 5: Public Speaker (Span 4) */}
         <BentoCard
           Icon={Award}
-          name={tr('Agenda una Charla', 'Book a Speaking Event')}
-          description={tr(
-            'Invita a Berta como conferencista para tu escuela, grupo de fe o empresa.',
-            'Invite Berta as a speaker for your school, faith group, or company.'
-          )}
+          name={cardSpeakerTitle}
+          description={cardSpeakerDesc}
           cta={tr('Agendar charla con Berta', 'Book Berta as a speaker')}
           className="magic-bento-col-4 glow-amber"
           onClick={() => onNavigate('speaker')}
@@ -333,15 +428,15 @@ const HomeView = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '8px', marginBottom: '14px', zIndex: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>🎓</span>
-              <span>{tr('Educación de estudiantes e hijos', 'Student & parenting education')}</span>
+              <span>{speakerBullet1}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>✨</span>
-              <span>{tr('Grupos de damas y grupos de fe', "Women's ministries & faith groups")}</span>
+              <span>{speakerBullet2}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>💼</span>
-              <span>{tr('Mensaje alentador para empresas', 'Encouraging message for companies')}</span>
+              <span>{speakerBullet3}</span>
             </div>
           </div>
         </BentoCard>
@@ -349,11 +444,8 @@ const HomeView = ({
         {/* Card 6: The Weyenberg Statement (Span 6) */}
         <BentoCard
           Icon={Scale}
-          name="The Weyenberg Statement"
-          description={tr(
-            'Statements de la familia Weyenberg basados en conceptos bíblicos, analizando fenómenos de la actualidad con un lente bíblico.',
-            'Statements by the Weyenberg family grounded in biblical concepts, analyzing current phenomena through a biblical lens.'
-          )}
+          name={cardStatementTitle}
+          description={cardStatementDesc}
           cta={tr('Leer todos los Statements', 'Read all Statements')}
           className="magic-bento-col-6 glow-purple"
           onClick={() => onNavigate('statement')}
@@ -393,11 +485,8 @@ const HomeView = ({
         {/* Card 7: Blog de Berta · Reflexiones e Imágenes (Span 6) */}
         <BentoCard
           Icon={PenTool}
-          name={tr('Blog de Berta · Reflexiones', "Berta's Blog · Reflections")}
-          description={tr(
-            'Reflexiones escritas, enseñanzas para la familia y galerías de imágenes compartidas por Berta.',
-            'Written reflections, family teachings, and image galleries shared by Berta.'
-          )}
+          name={cardBlogTitle}
+          description={cardBlogDesc}
           cta={tr('Ir al Blog de Berta', "Go to Berta's Blog")}
           className="magic-bento-col-6 glow-amber"
           onClick={() => onNavigate('noticias')}
@@ -432,21 +521,18 @@ const HomeView = ({
         {/* Card 8: Conecta (Span 12) */}
         <BentoCard
           Icon={Mail}
-          name={tr('Conecta con Berta', 'Connect with Berta')}
-          description={tr(
-            'Envía tus preguntas para el segmento Dame La Letra, comparte tu testimonio o agenda una conferencia.',
-            'Send your questions for the Dame La Letra segment, share your testimony, or book a speaking event.'
-          )}
+          name={cardConectaTitle}
+          description={cardConectaDesc}
           cta={tr('Ir a Conecta', 'Go to Connect')}
           className="magic-bento-col-12 glow-purple"
           onClick={() => onNavigate('conecta')}
         >
           <div style={{ display: 'flex', gap: '24px', marginTop: '8px', marginBottom: '12px', flexWrap: 'wrap', zIndex: 10 }}>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>📍</span> Louisville, Kentucky
+              <span>📍</span> {locationText}
             </div>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>✉️</span> info@conbertaciones.com
+              <span>✉️</span> {contactEmail}
             </div>
           </div>
         </BentoCard>
