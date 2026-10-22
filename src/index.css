@@ -921,9 +921,8 @@ textarea.form-control {
 .bio-subtitle {
   font-size: 0.82rem;
   font-weight: 700;
-  text-transform: uppercase;
   color: var(--accent-terracotta);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   margin-bottom: 12px;
 }
 
@@ -1215,8 +1214,7 @@ textarea.form-control {
   border-radius: var(--radius-xl);
   font-size: 0.75rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   margin-bottom: 16px;
 }
 
@@ -1825,8 +1823,7 @@ textarea.form-control {
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity var(--duration-mid) var(--ease-spring),

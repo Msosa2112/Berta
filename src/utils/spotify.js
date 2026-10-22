@@ -23,12 +23,22 @@ export function formatDurationMs(ms) {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
+export function normalizeBrandText(str = '') {
+  if (!str) return '';
+  return str.replace(/\bconbertaci(?:ones|ón|on)\b/gi, (match, offset, full) => {
+    const prevChar = offset > 0 ? full[offset - 1] : '';
+    const nextChar = full[offset + match.length] || '';
+    if (prevChar === '@' || prevChar === '/' || nextChar === '.') return match;
+    return 'ConBERTAciones';
+  });
+}
+
 export function cleanTextToHtml(desc, htmlDesc) {
   if (htmlDesc && htmlDesc.includes('<p>')) {
-    return htmlDesc;
+    return normalizeBrandText(htmlDesc);
   }
   if (!desc) return '';
-  return desc
+  return normalizeBrandText(desc)
     .split(/\n+/)
     .map(p => p.trim())
     .filter(Boolean)
@@ -134,7 +144,7 @@ export async function syncSpotifyContent(customClientId, customClientSecret) {
       id: `sp_${e.id}`,
       spotifyId: e.id,
       spotifyUrl: e.external_urls?.spotify || `https://open.spotify.com/episode/${e.id}`,
-      title: e.name.trim(),
+      title: normalizeBrandText(e.name.trim()),
       host: guestName,
       category: 'Entrevista',
       releaseDate: e.release_date,
@@ -143,7 +153,7 @@ export async function syncSpotifyContent(customClientId, customClientSecret) {
       color: 'purple',
       art: e.images?.[0]?.url || '/cover_art_games.png',
       audioUrl: e.mp3Url,
-      description: e.description ? e.description.trim() : '',
+      description: e.description ? normalizeBrandText(e.description.trim()) : '',
       htmlDescription: cleanTextToHtml(e.description, e.html_description),
     };
   });

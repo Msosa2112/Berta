@@ -59,7 +59,7 @@ const HomeView = ({
               </div>
               <div className="bio-text-block">
                 <h2 className="bio-name">Berta Weyenberg</h2>
-                <div style={{ fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent-terracotta)', letterSpacing: '0.05em', margin: '4px 0 8px 0' }}>
+                <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--accent-terracotta)', letterSpacing: '0.03em', margin: '4px 0 8px 0' }}>
                   Host de ConBERTAciones · Reflexiones &amp; Conferencista
                 </div>
                 <div style={{ display: 'flex', gap: '6px', fontSize: '0.78rem', color: 'var(--text-muted)', alignItems: 'center' }}>

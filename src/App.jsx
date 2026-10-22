@@ -1110,7 +1110,7 @@ function App() {
                     </a>
                   </div>
                   <p style={{ maxHeight: '90px', overflowY: 'auto', margin: 0 }}>
-                    {activeEpisode.description || 'Escucha esta ConBERTAción inspiradora conducida por Berta Weyenberg sobre fe, resiliencia y desarrollo comunitario en Louisville, KY.'}
+                    {activeEpisode.description || 'Escucha este episodio de ConBERTAciones conducido por Berta Weyenberg sobre fe, resiliencia y desarrollo comunitario en Louisville, KY.'}
                   </p>
                 </div>
               </div>
