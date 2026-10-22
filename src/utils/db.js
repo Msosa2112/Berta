@@ -1,5 +1,5 @@
 const DB_NAME = 'berta_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const openDB = () => {
   return new Promise((resolve, reject) => {
@@ -24,6 +24,9 @@ export const openDB = () => {
       }
       if (!db.objectStoreNames.contains('profile')) {
         db.createObjectStore('profile', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('statements')) {
+        db.createObjectStore('statements', { keyPath: 'id' });
       }
     };
   });

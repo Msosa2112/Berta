@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Home, Mic, Newspaper, Calendar, MapPin, Menu, X, BookOpen, Award, Briefcase, Mail, Plus, Play, Pause, ChevronDown, ChevronUp } from 'lucide-react';
+import { Home, Mic, Newspaper, Calendar, MapPin, Menu, X, BookOpen, Award, Briefcase, Mail, Plus, Play, Pause, ChevronDown, ChevronUp, Scale } from 'lucide-react';
 import HomeView from './components/HomeView';
 import PodcastView from './components/PodcastView';
 import UnderTheUmbrellaView from './components/UnderTheUmbrellaView';
+import WeyenbergStatementView from './components/WeyenbergStatementView';
 import PublicSpeakerView from './components/PublicSpeakerView';
 import ConectaView from './components/ConectaView';
 import NoticiasView from './components/NoticiasView';
@@ -238,6 +239,48 @@ function App() {
 
   const defaultProfile = { facebook: '', instagram: '', linkedin: '', youtube: '', website: '' };
 
+  const defaultStatements = [
+    {
+      id: 'ws_1',
+      titulo: 'Discernimiento en Tiempos de Confusión Cultural',
+      categoria: 'Cultura & Verdad Bíblica',
+      versiculo: 'Romanos 12:2 — "No os conforméis a este siglo, sino transformaos por medio de la renovación de vuestro entendimiento"',
+      autor: 'Familia Weyenberg',
+      fecha: 'Octubre 2026',
+      imagen: '/berta.jpeg',
+      galeria: [],
+      facebookUrl: '',
+      resumen: 'Como familia creemos que cada fenómeno de nuestra actualidad no debe analizarse desde la reacción emocional ni las modas pasajeras, sino a través del estándar eterno e inmutable de la Palabra de Dios.',
+      contenido: '<p>Vivimos en una época donde las corrientes de opinión cambian cada semana y donde la cultura intenta redefinir constantemente lo que es verdadero, bueno y justo. Sin embargo, como familia comprometida con la verdad bíblica, sostenemos que el creyente está llamado a ejercer un discernimiento profundo y compasivo.</p><p>Analizar los fenómenos actuales con un lente bíblico significa preguntar siempre: <strong>¿Qué dice la Escritura sobre la naturaleza humana, la familia, la justicia y la redención?</strong> Cuando miramos los titulares a través de Romanos 12:2, entendemos que nuestra mente necesita ser renovada diariamente por la Palabra para no ser arrastrados por el espíritu de la época.</p><p>Nuestro compromiso en <em>The Weyenberg Statement</em> es compartir reflexiones claras, fundamentadas en principios bíblicos eternos, que edifiquen a las familias y fortalezcan nuestra fe en medio de los desafíos del mundo contemporáneo.</p>',
+    },
+    {
+      id: 'ws_2',
+      titulo: 'La Educación de los Hijos: Una Responsabilidad Diseñada por Dios',
+      categoria: 'Educación & Valores',
+      versiculo: 'Deuteronomio 6:6-7 — "Y estas palabras que yo te mando hoy, estarán sobre tu corazón; y las repetirás a tus hijos"',
+      autor: 'Familia Weyenberg',
+      fecha: 'Octubre 2026',
+      imagen: '/cover_art_games.png',
+      galeria: [],
+      facebookUrl: '',
+      resumen: 'Ante los debates actuales sobre quién debe formar el carácter y la cosmovisión de las nuevas generaciones, la Biblia establece con claridad que el hogar es el primer y principal centro de discipulado y formación.',
+      contenido: '<p>Uno de los fenómenos más visibles de nuestra sociedad actual es la delegación total de la formación moral y espiritual de los hijos a las instituciones externas o a las pantallas digitales. Pero desde una cosmovisión bíblica, Dios confirió a los padres el privilegio y la responsabilidad irrenunciable de guiar el corazón de sus hijos.</p><p>En Deuteronomio 6 vemos que la enseñanza de los valores eternos ocurre en la cotidianidad del hogar: al sentarse en casa, al andar por el camino, al acostarse y al levantarse. La escuela instruye en ciencias y habilidades académicas, pero el carácter, la identidad y el temor de Dios se siembran en la mesa familiar.</p><p>Como educadores y como familia, afirmamos que cuando los padres asumen su rol bíblico con amor, intencionalidad y ejemplo, levantamos generaciones firmes, íntegras y preparadas para brillar en cualquier entorno.</p>',
+    },
+    {
+      id: 'ws_3',
+      titulo: 'Paz y Esperanza Soberana Frente a la Incertidumbre Global',
+      categoria: 'Actualidad & Fe',
+      versiculo: 'Salmos 46:1-2 — "Dios es nuestro amparo y fortaleza, nuestro pronto auxilio en las tribulaciones"',
+      autor: 'Familia Weyenberg',
+      fecha: 'Septiembre 2026',
+      imagen: '/logo.png',
+      galeria: [],
+      facebookUrl: '',
+      resumen: 'Frente a la polarización social, las crisis económicas y la ansiedad colectiva que dominan las noticias, recordamos que la historia no está fuera de control: descansa bajo la soberanía de Dios.',
+      contenido: '<p>Al observar las noticias de hoy —conflictos, divisiones sociales e incertidumbre económica— es fácil comprender por qué tantas personas viven bajo un estado constante de temor. Las redes sociales amplifican la alarma, pero rara vez ofrecen una respuesta para el alma.</p><p>El lente bíblico nos permite ver la realidad sin negar los problemas, pero sin perder jamás la perspectiva del Trono de Dios. El Salmo 46 nos recuerda que aunque la tierra tiemble y los escenarios cambien, nuestro refugio permanece inconmovible.</p><p>La respuesta de la familia de fe ante la crisis nunca es el pánico ni el aislamiento, sino ser portadores de paz, verdad y servicio activo en nuestra comunidad.</p>',
+    },
+  ];
+
   const [loading, setLoading] = useState(true);
   const [profileSettings, setProfileSettings] = useState(defaultProfile);
   const [episodes, setEpisodes] = useState([]);
@@ -245,6 +288,7 @@ function App() {
   const [savedEpisodes, setSavedEpisodes] = useState([]);
   const [reflections, setReflections] = useState([]);
   const [noticias, setNoticias] = useState([]);
+  const [statements, setStatements] = useState([]);
 
   // Audio Player states and refs
   const audioRef = useRef(null);
@@ -365,7 +409,17 @@ function App() {
         }
         setNoticias(storedNoticias);
 
-        // 6. Saved episodes (keep in LocalStorage for convenience)
+        // 6. The Weyenberg Statements
+        let storedStatements = await getAll('statements');
+        if (!storedStatements || storedStatements.length === 0) {
+          storedStatements = defaultStatements;
+          for (const st of storedStatements) {
+            await put('statements', st);
+          }
+        }
+        setStatements(storedStatements);
+
+        // 7. Saved episodes (keep in LocalStorage for convenience)
         try {
           const lsSaved = JSON.parse(localStorage.getItem('conbertaciones_saved')) || [];
           setSavedEpisodes(lsSaved);
@@ -548,12 +602,41 @@ function App() {
     }
   };
 
+  const handleAddStatement = async (st) => {
+    try {
+      const newStatement = { ...st, id: 'ws_' + Date.now().toString() };
+      await put('statements', newStatement);
+      setStatements(s => [newStatement, ...s]);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdateStatement = async (st) => {
+    try {
+      await put('statements', st);
+      setStatements(s => s.map(x => x.id === st.id ? st : x));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteStatement = async (id) => {
+    try {
+      await deleteItem('statements', id);
+      setStatements(s => s.filter(st => st.id !== id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleImportBackup = async (data) => {
     try {
       await clearStore('episodes');
       await clearStore('guests');
       await clearStore('reflections');
       await clearStore('noticias');
+      await clearStore('statements');
       await clearStore('profile');
 
       if (data.episodes) {
@@ -579,6 +662,12 @@ function App() {
           await put('noticias', n);
         }
         setNoticias(data.noticias);
+      }
+      if (data.statements) {
+        for (const st of data.statements) {
+          await put('statements', st);
+        }
+        setStatements(data.statements);
       }
       if (data.profileSettings) {
         const p = { ...data.profileSettings, id: 'default_profile' };
@@ -695,6 +784,7 @@ function App() {
     { id: 'home', label: 'Inicio', icon: <Home size={18} /> },
     { id: 'podcast', label: 'ConBERTAciones (Entrevistas)', icon: <Mic size={18} /> },
     { id: 'umbrella', label: 'Under the Umbrella (Reflexiones)', icon: <BookOpen size={18} /> },
+    { id: 'statement', label: 'The Weyenberg Statement', icon: <Scale size={18} /> },
     { id: 'speaker', label: 'Agenda una Charla', icon: <Award size={18} /> },
     { id: 'conecta', label: 'Conecta', icon: <Mail size={18} /> },
   ];
@@ -820,6 +910,7 @@ function App() {
             <HomeView
               episodes={episodes}
               reflections={reflections}
+              statements={statements}
               onPlay={openPlayer}
               onOpenPlaylist={openPlaylist}
               onOpenReflection={openReflection}
@@ -855,6 +946,17 @@ function App() {
               onNavigate={setCurrentView}
               onSyncSpotify={() => handleSyncSpotify(false)}
               isSyncingSpotify={isSyncingSpotify}
+              onOpenMenu={() => setIsDrawerOpen(true)}
+            />
+          </div>
+
+          <div style={{ display: currentView === 'statement' ? 'block' : 'none' }}>
+            <WeyenbergStatementView
+              statements={statements}
+              onAddStatement={handleAddStatement}
+              onUpdateStatement={handleUpdateStatement}
+              onDeleteStatement={handleDeleteStatement}
+              triggerToast={triggerToast}
               onOpenMenu={() => setIsDrawerOpen(true)}
             />
           </div>
@@ -1040,6 +1142,11 @@ function App() {
               <div className="nav-dot" style={{ opacity: currentView === 'umbrella' ? 1 : 0 }} />
               <BookOpen size={20} />
               <span className="nav-label">Reflexiones</span>
+            </button>
+            <button className={`nav-item ${currentView === 'statement' ? 'active' : ''}`} onClick={() => setCurrentView('statement')}>
+              <div className="nav-dot" style={{ opacity: currentView === 'statement' ? 1 : 0 }} />
+              <Scale size={20} />
+              <span className="nav-label">Statement</span>
             </button>
             <button className={`nav-item ${currentView === 'speaker' ? 'active' : ''}`} onClick={() => setCurrentView('speaker')}>
               <div className="nav-dot" style={{ opacity: currentView === 'speaker' ? 1 : 0 }} />
