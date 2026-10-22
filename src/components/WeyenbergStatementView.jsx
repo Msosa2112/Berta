@@ -20,6 +20,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { InteractiveHoverButton } from './InteractiveHoverButton';
+import { useLanguage, useAutoTranslated } from '../utils/i18n.jsx';
 
 const CATEGORIES = [
   'Todos',
@@ -28,6 +29,14 @@ const CATEGORIES = [
   'Cultura & Verdad Bíblica',
   'Educación & Valores',
 ];
+
+const CATEGORY_EN = {
+  'Todos': 'All',
+  'Actualidad & Fe': 'Current Events & Faith',
+  'Familia & Sociedad': 'Family & Society',
+  'Cultura & Verdad Bíblica': 'Culture & Biblical Truth',
+  'Educación & Valores': 'Education & Values',
+};
 
 const FacebookIcon = ({ size = 15 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -60,6 +69,280 @@ const htmlToPlainText = (html = '') => {
     .trim();
 };
 
+const StatementCard = ({ st, onSelect, lang, tr }) => {
+  const title = useAutoTranslated(st.titulo, st.tituloEn, lang);
+  const verse = useAutoTranslated(st.versiculo, st.versiculoEn, lang);
+  const summaryRaw = st.resumen || stripHtml(st.contenido).substring(0, 140) + '...';
+  const summary = useAutoTranslated(summaryRaw, st.resumenEn, lang);
+  const catLabel = lang === 'en' ? (CATEGORY_EN[st.categoria] || st.categoria) : st.categoria;
+
+  return (
+    <div
+      onClick={() => onSelect(st)}
+      className="glass-card glass-card-interactive blog-card"
+      style={{
+        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        border: '1px solid var(--glass-border)',
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          aspectRatio: '16/10',
+          overflow: 'hidden',
+          borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
+        }}
+      >
+        <img
+          src={st.imagen || '/cover_art_faith.png'}
+          alt={title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          className="blog-card-img"
+        />
+        <span
+          className="news-card-badge"
+          style={{
+            background: 'rgba(121, 35, 89, 0.88)',
+            color: '#fff',
+            top: '12px',
+            left: '12px',
+          }}
+        >
+          {catLabel}
+        </span>
+      </div>
+
+      <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div>
+          {verse && (
+            <div
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: 'var(--accent-purple)',
+                background: 'rgba(121, 35, 89, 0.08)',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                marginBottom: '10px',
+                display: 'inline-block',
+              }}
+            >
+              📖 {verse}
+            </div>
+          )}
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', lineHeight: 1.35 }}>
+            {title}
+          </h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '16px' }}>
+            {summary}
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderTop: '1px solid var(--glass-border)',
+            paddingTop: '12px',
+            marginTop: '8px',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              {st.autor || tr('Familia Weyenberg', 'Weyenberg Family')}
+            </div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Calendar size={11} /> {st.fecha}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {st.facebookUrl && (
+              <a
+                href={st.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="biz-btn-icon"
+                style={{ color: '#1877F2', width: '32px', height: '32px' }}
+                title={tr('Ver en Facebook', 'View on Facebook')}
+              >
+                <FacebookIcon size={14} />
+              </a>
+            )}
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-purple)' }}>
+              {tr('Leer →', 'Read →')}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const StatementReaderModal = ({ activeStatement, onClose, onShare, lang, tr }) => {
+  const title = useAutoTranslated(activeStatement.titulo, activeStatement.tituloEn, lang);
+  const verse = useAutoTranslated(activeStatement.versiculo, activeStatement.versiculoEn, lang);
+  const bodyHtml = useAutoTranslated(activeStatement.contenido, activeStatement.contenidoEn, lang);
+  const catLabel = lang === 'en' ? (CATEGORY_EN[activeStatement.categoria] || activeStatement.categoria) : activeStatement.categoria;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'var(--glass-bg-dense)',
+        backdropFilter: 'blur(30px)',
+        zIndex: 120,
+        display: 'flex',
+        justifyContent: 'center',
+        overflowY: 'auto',
+      }}
+      className="reveal"
+    >
+      <div className="editorial-post" style={{ width: '100%', maxWidth: '800px', padding: '32px 20px 120px 20px' }}>
+        {/* Top Bar */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '28px',
+            borderBottom: '1px solid var(--glass-border)',
+            paddingBottom: '16px',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <InteractiveHoverButton onClick={onClose}>
+            {tr('Volver a The Weyenberg Statement', 'Back to The Weyenberg Statement')}
+          </InteractiveHoverButton>
+
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {activeStatement.facebookUrl && (
+              <a
+                href={activeStatement.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+                style={{
+                  padding: '8px 14px',
+                  fontSize: '0.8rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#1877F2',
+                  textDecoration: 'none',
+                }}
+              >
+                <FacebookIcon size={14} /> {tr('Ver en Facebook', 'View on Facebook')}
+              </a>
+            )}
+            <button
+              onClick={() => onShare(activeStatement)}
+              className="btn-secondary"
+              style={{
+                padding: '8px 14px',
+                fontSize: '0.8rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              <Share2 size={14} /> {tr('Compartir', 'Share')}
+            </button>
+          </div>
+        </div>
+
+        {/* Header */}
+        <header className="editorial-header">
+          <span className="editorial-tag">The Weyenberg Statement · {catLabel}</span>
+          <h1 className="editorial-title">{title}</h1>
+          <div className="editorial-meta" style={{ flexWrap: 'wrap', gap: '10px' }}>
+            <img src="/berta.jpeg" alt="Familia Weyenberg" className="editorial-meta-img" />
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+              {activeStatement.autor || tr('Familia Weyenberg', 'Weyenberg Family')}
+            </span>
+            <span>·</span>
+            <span>{activeStatement.fecha}</span>
+          </div>
+        </header>
+
+        {/* Biblical Foundation Highlight Box */}
+        {verse && (
+          <div
+            className="glass-card glow-amber"
+            style={{
+              padding: '18px 22px',
+              marginBottom: '24px',
+              borderLeft: '4px solid var(--accent-purple)',
+            }}
+          >
+            <div style={{ fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent-purple)', marginBottom: '4px' }}>
+              📖 {tr('Fundamento y Lente Bíblico', 'Biblical Foundation & Lens')}
+            </div>
+            <div style={{ fontSize: '0.98rem', fontStyle: 'italic', fontWeight: 600, color: 'var(--text-primary)' }}>
+              "{verse}"
+            </div>
+          </div>
+        )}
+
+        {/* Main Cover Image */}
+        {activeStatement.imagen && (
+          <img
+            src={activeStatement.imagen}
+            alt={title}
+            style={{
+              width: '100%',
+              maxHeight: '440px',
+              borderRadius: 'var(--radius-md)',
+              objectFit: 'cover',
+              marginBottom: '28px',
+              border: '1px solid var(--glass-border)',
+            }}
+          />
+        )}
+
+        {/* Statement Body */}
+        <article className="glass-card editorial-body" style={{ padding: '32px', marginBottom: '28px' }}>
+          <div dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+        </article>
+
+        {/* Additional Gallery Images if any */}
+        {activeStatement.imagenes && activeStatement.imagenes.length > 0 && (
+          <section style={{ marginBottom: '32px' }}>
+            <h3 style={{ fontSize: '1.15rem', marginBottom: '14px' }}>
+              {tr('Galería de la Publicación', 'Publication Photo Gallery')}
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+              {activeStatement.imagenes.map((imgUrl, i) => (
+                <img
+                  key={i}
+                  src={imgUrl}
+                  alt={`${title} - ${i + 1}`}
+                  style={{
+                    width: '100%',
+                    aspectRatio: '4/3',
+                    objectFit: 'cover',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--glass-border)',
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const WeyenbergStatementView = ({
   statements = [],
   onAddStatement,
@@ -67,6 +350,7 @@ const WeyenbergStatementView = ({
   onDeleteStatement,
   triggerToast,
 }) => {
+  const { lang, tr } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeStatement, setActiveStatement] = useState(null);
@@ -271,13 +555,16 @@ const WeyenbergStatementView = ({
                 gap: '6px',
               }}
             >
-              <Scale size={13} /> Cosmovisión &amp; Lente Bíblico · Familia Weyenberg
+              <Scale size={13} /> {tr('Cosmovisión & Lente Bíblico · Familia Weyenberg', 'Worldview & Biblical Lens · Weyenberg Family')}
             </span>
             <h1 style={{ fontSize: '2.35rem', marginTop: '4px', marginBottom: '8px' }}>
               The Weyenberg Statement
             </h1>
             <p style={{ color: 'var(--text-muted)', maxWidth: '680px', margin: 0, lineHeight: 1.55 }}>
-              Statements y pronunciamientos de la <strong>Familia Weyenberg</strong> basados en conceptos bíblicos, analizando fenómenos de la actualidad, la cultura y la sociedad a través de un lente bíblico.
+              {tr(
+                'Statements y pronunciamientos de la Familia Weyenberg basados en conceptos bíblicos, analizando fenómenos de la actualidad, la cultura y la sociedad a través de un lente bíblico.',
+                'Statements and reflections from the Weyenberg Family grounded in biblical concepts, analyzing current events, culture, and society through a biblical lens.'
+              )}
             </p>
           </div>
 
@@ -298,7 +585,7 @@ const WeyenbergStatementView = ({
               }}
             >
               <Lock size={14} />
-              <span>{isAdminOpen ? 'Cerrar Panel Admin' : 'Administrar Statements'}</span>
+              <span>{isAdminOpen ? tr('Cerrar Panel Admin', 'Close Admin Panel') : tr('Administrar Statements', 'Manage Statements')}</span>
             </button>
           </div>
         </div>
@@ -730,9 +1017,9 @@ const WeyenbergStatementView = ({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <span className="editorial-tag" style={{ background: 'var(--accent-purple)', color: '#fff', margin: 0 }}>
-                    📖 Statement Destacado · {featuredStatement.categoria}
+                    📖 {tr('Statement Destacado', 'Featured Statement')} · {lang === 'en' ? (CATEGORY_EN[featuredStatement.categoria] || featuredStatement.categoria) : featuredStatement.categoria}
                   </span>
-                  {featuredStatement.versiculo && (
+                  {(featuredStatement.versiculo || featuredStatement.versiculoEn) && (
                     <span
                       style={{
                         fontSize: '0.76rem',
@@ -743,14 +1030,14 @@ const WeyenbergStatementView = ({
                         borderRadius: '999px',
                       }}
                     >
-                      {featuredStatement.versiculo}
+                      {lang === 'en' ? (featuredStatement.versiculoEn || featuredStatement.versiculo) : featuredStatement.versiculo}
                     </span>
                   )}
                 </div>
 
                 <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginTop: '4px' }}>
                   <h2 style={{ margin: 0, fontSize: '1.65rem', lineHeight: 1.2, color: '#fff', fontFamily: 'var(--font-serif)', fontWeight: 800 }}>
-                    {featuredStatement.titulo}
+                    {lang === 'en' ? (featuredStatement.tituloEn || featuredStatement.titulo) : featuredStatement.titulo}
                   </h2>
                   <ArrowUpRight style={{ width: '22px', height: '22px', flexShrink: 0, color: '#fff' }} />
                 </div>
@@ -767,7 +1054,9 @@ const WeyenbergStatementView = ({
                     overflow: 'hidden',
                   }}
                 >
-                  {featuredStatement.resumen || stripHtml(featuredStatement.contenido)}
+                  {lang === 'en'
+                    ? (featuredStatement.resumenEn || featuredStatement.resumen || stripHtml(featuredStatement.contenido))
+                    : (featuredStatement.resumen || stripHtml(featuredStatement.contenido))}
                 </p>
               </div>
 
@@ -784,12 +1073,12 @@ const WeyenbergStatementView = ({
                 }}
               >
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center', color: '#fff', fontSize: '0.8rem' }}>
-                  <span style={{ fontWeight: 700 }}>{featuredStatement.autor || 'Familia Weyenberg'}</span>
+                  <span style={{ fontWeight: 700 }}>{featuredStatement.autor || tr('Familia Weyenberg', 'Weyenberg Family')}</span>
                   <span>·</span>
                   <span>{featuredStatement.fecha}</span>
                 </div>
                 <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fff' }}>
-                  Leer Statement completo →
+                  {tr('Leer Statement completo →', 'Read full Statement →')}
                 </span>
               </div>
             </div>
@@ -817,7 +1106,7 @@ const WeyenbergStatementView = ({
                 className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
                 onClick={() => setSelectedCategory(cat)}
               >
-                {cat}
+                {lang === 'en' ? (CATEGORY_EN[cat] || cat) : cat}
               </button>
             ))}
           </div>
@@ -837,7 +1126,7 @@ const WeyenbergStatementView = ({
             <Search size={15} color="var(--text-muted)" />
             <input
               type="text"
-              placeholder="Buscar tema o pasaje bíblico..."
+              placeholder={tr('Buscar tema o pasaje bíblico...', 'Search topic or scripture...')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{
@@ -857,117 +1146,18 @@ const WeyenbergStatementView = ({
       <section>
         {filteredStatements.length === 0 ? (
           <div className="glass-card" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            No se encontraron Statements en esta categoría.
+            {tr('No se encontraron Statements en esta categoría.', 'No Statements found in this category.')}
           </div>
         ) : (
           <div className="directory-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
             {filteredStatements.map(st => (
-              <div
+              <StatementCard
                 key={st.id}
-                onClick={() => setActiveStatement(st)}
-                className="glass-card glass-card-interactive blog-card"
-                style={{
-                  padding: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100%',
-                  border: '1px solid var(--glass-border)',
-                }}
-              >
-                <div
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    aspectRatio: '16/10',
-                    overflow: 'hidden',
-                    borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
-                  }}
-                >
-                  <img
-                    src={st.imagen || '/cover_art_faith.png'}
-                    alt={st.titulo}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    className="blog-card-img"
-                  />
-                  <span
-                    className="news-card-badge"
-                    style={{
-                      background: 'rgba(121, 35, 89, 0.88)',
-                      color: '#fff',
-                      top: '12px',
-                      left: '12px',
-                    }}
-                  >
-                    {st.categoria}
-                  </span>
-                </div>
-
-                <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    {st.versiculo && (
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          color: 'var(--accent-purple)',
-                          background: 'rgba(121, 35, 89, 0.08)',
-                          padding: '4px 10px',
-                          borderRadius: '6px',
-                          marginBottom: '10px',
-                          display: 'inline-block',
-                        }}
-                      >
-                        📖 {st.versiculo}
-                      </div>
-                    )}
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', lineHeight: 1.35 }}>
-                      {st.titulo}
-                    </h3>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '16px' }}>
-                      {st.resumen || stripHtml(st.contenido).substring(0, 140) + '...'}
-                    </p>
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      borderTop: '1px solid var(--glass-border)',
-                      paddingTop: '12px',
-                      marginTop: '8px',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {st.autor || 'Familia Weyenberg'}
-                      </div>
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Calendar size={11} /> {st.fecha}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {st.facebookUrl && (
-                        <a
-                          href={st.facebookUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={e => e.stopPropagation()}
-                          className="biz-btn-icon"
-                          style={{ color: '#1877F2', width: '32px', height: '32px' }}
-                          title="Ver en Facebook"
-                        >
-                          <FacebookIcon size={14} />
-                        </a>
-                      )}
-                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-purple)' }}>
-                        Leer →
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                st={st}
+                onSelect={setActiveStatement}
+                lang={lang}
+                tr={tr}
+              />
             ))}
           </div>
         )}
@@ -975,152 +1165,13 @@ const WeyenbergStatementView = ({
 
       {/* ── Full Statement Reader Modal ── */}
       {activeStatement && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'var(--glass-bg-dense)',
-            backdropFilter: 'blur(30px)',
-            zIndex: 120,
-            display: 'flex',
-            justifyContent: 'center',
-            overflowY: 'auto',
-          }}
-          className="reveal"
-        >
-          <div className="editorial-post" style={{ width: '100%', maxWidth: '800px', padding: '32px 20px 120px 20px' }}>
-            {/* Top Bar */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '28px',
-                borderBottom: '1px solid var(--glass-border)',
-                paddingBottom: '16px',
-                flexWrap: 'wrap',
-                gap: '12px',
-              }}
-            >
-              <InteractiveHoverButton onClick={() => setActiveStatement(null)}>
-                Volver a The Weyenberg Statement
-              </InteractiveHoverButton>
-
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {activeStatement.facebookUrl && (
-                  <a
-                    href={activeStatement.facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-secondary"
-                    style={{
-                      padding: '8px 14px',
-                      fontSize: '0.8rem',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      color: '#1877F2',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    <FacebookIcon size={14} /> Ver en Facebook
-                  </a>
-                )}
-                <button
-                  onClick={() => handleShareStatement(activeStatement)}
-                  className="btn-secondary"
-                  style={{
-                    padding: '8px 14px',
-                    fontSize: '0.8rem',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <Share2 size={14} /> Compartir
-                </button>
-              </div>
-            </div>
-
-            {/* Header */}
-            <header className="editorial-header">
-              <span className="editorial-tag">The Weyenberg Statement · {activeStatement.categoria}</span>
-              <h1 className="editorial-title">{activeStatement.titulo}</h1>
-              <div className="editorial-meta" style={{ flexWrap: 'wrap', gap: '10px' }}>
-                <img src="/berta.jpeg" alt="Familia Weyenberg" className="editorial-meta-img" />
-                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                  {activeStatement.autor || 'Familia Weyenberg'}
-                </span>
-                <span>·</span>
-                <span>{activeStatement.fecha}</span>
-              </div>
-            </header>
-
-            {/* Biblical Foundation Highlight Box */}
-            {activeStatement.versiculo && (
-              <div
-                className="glass-card glow-amber"
-                style={{
-                  padding: '18px 22px',
-                  marginBottom: '24px',
-                  borderLeft: '4px solid var(--accent-purple)',
-                }}
-              >
-                <div style={{ fontSize: '0.74rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent-purple)', marginBottom: '4px' }}>
-                  📖 Fundamento y Lente Bíblico
-                </div>
-                <div style={{ fontSize: '0.98rem', fontStyle: 'italic', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  "{activeStatement.versiculo}"
-                </div>
-              </div>
-            )}
-
-            {/* Main Cover Image */}
-            {activeStatement.imagen && (
-              <img
-                src={activeStatement.imagen}
-                alt={activeStatement.titulo}
-                style={{
-                  width: '100%',
-                  maxHeight: '440px',
-                  borderRadius: 'var(--radius-md)',
-                  objectFit: 'cover',
-                  marginBottom: '28px',
-                  border: '1px solid var(--glass-border)',
-                }}
-              />
-            )}
-
-            {/* Statement Body */}
-            <article className="glass-card editorial-body" style={{ padding: '32px', marginBottom: '28px' }}>
-              <div dangerouslySetInnerHTML={{ __html: activeStatement.contenido }} />
-            </article>
-
-            {/* Additional Gallery Images if any */}
-            {activeStatement.imagenes && activeStatement.imagenes.length > 0 && (
-              <section style={{ marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '1.15rem', marginBottom: '14px' }}>Galería de la Publicación</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-                  {activeStatement.imagenes.map((imgUrl, i) => (
-                    <img
-                      key={i}
-                      src={imgUrl}
-                      alt={`${activeStatement.titulo} - ${i + 1}`}
-                      style={{
-                        width: '100%',
-                        aspectRatio: '4/3',
-                        objectFit: 'cover',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--glass-border)',
-                      }}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-        </div>
+        <StatementReaderModal
+          activeStatement={activeStatement}
+          onClose={() => setActiveStatement(null)}
+          onShare={handleShareStatement}
+          lang={lang}
+          tr={tr}
+        />
       )}
     </div>
   );

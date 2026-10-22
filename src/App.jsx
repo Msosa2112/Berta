@@ -16,6 +16,7 @@ import UmbrellaPlaylistView from './components/UmbrellaPlaylistView';
 import ArticleView from './components/ArticleView';
 import ProfileView from './components/ProfileView';
 import { openDB, getAll, put, deleteItem, clearStore } from './utils/db';
+import { useLanguage, LanguageSwitch } from './utils/i18n.jsx';
 import {
   getInitialSpotifyInterviews,
   getInitialSpotifyReflections,
@@ -32,7 +33,9 @@ const defaultGuests = [
     id: 'g_rachel',
     name: 'Rachel Greenberg',
     business: 'Primera Dama de Louisville',
+    businessEn: 'First Lady of Louisville',
     bio: 'Conversación íntima uno a uno con Berta sobre liderazgo comunitario, familia y el futuro de Louisville.',
+    bioEn: 'Intimate one-on-one conversation with Berta about community leadership, family, and the future of Louisville.',
     bgPhoto: 'https://i.scdn.co/image/ab6765630000ba8a3621f8847b2a7f7c0b402271',
     facebook: '',
     instagram: 'https://instagram.com',
@@ -44,7 +47,9 @@ const defaultGuests = [
     id: 'g_noemi',
     name: 'Noemi Robinson',
     business: "Tatiana's Light Foundation",
+    businessEn: "Tatiana's Light Foundation",
     bio: 'La fe tras la pérdida de su hija y cómo el educar a otros es parte viva del legado de Tatiana.',
+    bioEn: 'Faith after the loss of her daughter and how educating others is a living part of Tatiana’s legacy.',
     bgPhoto: 'https://i.scdn.co/image/ab6765630000ba8a3621f8847b2a7f7c0b402271',
     facebook: 'https://www.facebook.com/share/g/18mjhiSMHK/',
     instagram: '',
@@ -52,8 +57,8 @@ const defaultGuests = [
     youtube: '',
     website: 'https://www.tatianaslight.org',
   },
-  { id: 'g1', name: 'Dr. Hector J. Ruiz', business: 'Lexington Comedy Club', bio: 'Comediante local con más de 10 años haciendo reír a Kentucky.', bgPhoto: '/guest_hector.png', facebook: '', instagram: 'https://instagram.com', linkedin: '', youtube: '', website: '' },
-  { id: 'g2', name: 'Carlos Aguilera', business: 'Aguilera Tech Hub', bio: 'Joven emprendedor dominicano enfocado en crear soluciones de IA para la iglesia.', bgPhoto: '/guest_carlos.png', facebook: 'https://facebook.com', instagram: '', linkedin: 'https://linkedin.com', youtube: '', website: '' },
+  { id: 'g1', name: 'Dr. Hector J. Ruiz', business: 'Lexington Comedy Club', businessEn: 'Lexington Comedy Club', bio: 'Comediante local con más de 10 años haciendo reír a Kentucky.', bioEn: 'Local comedian with over 10 years bringing laughter to Kentucky.', bgPhoto: '/guest_hector.png', facebook: '', instagram: 'https://instagram.com', linkedin: '', youtube: '', website: '' },
+  { id: 'g2', name: 'Carlos Aguilera', business: 'Aguilera Tech Hub', businessEn: 'Aguilera Tech Hub', bio: 'Joven emprendedor dominicano enfocado en crear soluciones de IA para la iglesia.', bioEn: 'Young Dominican entrepreneur focused on building AI solutions for the church.', bgPhoto: '/guest_carlos.png', facebook: 'https://facebook.com', instagram: '', linkedin: 'https://linkedin.com', youtube: '', website: '' },
 ];
 
 // ─── BLOG DE BERTA DATA ──────────────────────────────────────────────────────
@@ -62,9 +67,13 @@ const defaultNoticias = [
     id: 'b1',
     tipo: 'blog',
     titulo: 'El poder de la fe en tiempos de incertidumbre',
+    tituloEn: 'The Power of Faith in Times of Uncertainty',
     fraseDestacada: 'La fe sigue siendo el ancla que nos mantiene unidos y con esperanza.',
+    fraseDestacadaEn: 'Faith remains the anchor that keeps us united and filled with hope.',
     excerpt: 'En medio de los cambios que vivimos como comunidad y como familias, la fe sigue siendo el ancla que nos mantiene unidos y con esperanza.',
+    excerptEn: 'Amid the changes we experience as a community and as families, faith remains the anchor that keeps us united and hopeful.',
     contenido: '<p>Querida comunidad: vivimos tiempos que nos piden más de lo que a veces sentimos que podemos dar. Familias separadas, sueños postergados, miedo a lo desconocido. Y sin embargo, aquí estamos. Juntos.</p><p>La fe, para nosotros, es la certeza viva de que Dios sigue guiando nuestro camino. Es la voz que nos recuerda que no estamos solos y el abrazo que sostiene a nuestra familia en cada temporada.</p><p>Esta semana, te invito a detenerte cinco minutos. Respira. Recuerda de dónde vienes. Y confía en el propósito que Dios tiene para tu vida y tu hogar.<br /><br /><em>Con amor y fe, Berta.</em></p>',
+    contenidoEn: '<p>Dear community: we live in times that ask more of us than we sometimes feel we can give. Separated families, postponed dreams, fear of the unknown. And yet, here we are. Together.</p><p>Faith, for us, is the living certainty that God continues to guide our path. It is the voice that reminds us we are not alone and the embrace that sustains our family in every season.</p><p>This week, I invite you to pause for five minutes. Breathe. Remember where you come from. And trust the purpose God has for your life and your home.<br /><br /><em>With love and faith, Berta.</em></p>',
     imagen: '/berta.jpeg',
     galeria: [],
     categoria: 'Fe & Esperanza',
@@ -76,9 +85,13 @@ const defaultNoticias = [
     id: 'b2',
     tipo: 'blog',
     titulo: 'Educar el corazón de nuestros hijos más allá del aula',
+    tituloEn: 'Educating Our Children’s Hearts Beyond the Classroom',
     fraseDestacada: 'Cada niño que crece con valores firmes y amor en casa lleva consigo un regalo para toda la vida.',
+    fraseDestacadaEn: 'Every child who grows up with strong values and love at home carries a gift for a lifetime.',
     excerpt: 'Reflexión sobre el privilegio de acompañar a nuestros estudiantes e hijos en su crecimiento académico, emocional y espiritual.',
+    excerptEn: 'A reflection on the privilege of guiding our students and children in their academic, emotional, and spiritual growth.',
     contenido: '<p>Después de tantos años en el salón de clases y acompañando a padres de familia, he comprobado una verdad: los niños aprenden tanto de lo que ven en nuestra vida diaria como de los libros que leen.</p><p>Educar requiere paciencia, presencia e intencionalidad. Cuando escuchamos a nuestros hijos, celebramos su esfuerzo y los corregimos con amor y sabiduría, sembramos semillas que darán fruto por generaciones.</p><p>Nunca subestimes el impacto de una palabra de aliento en la mesa familiar antes de empezar el día.</p>',
+    contenidoEn: '<p>After so many years in the classroom and walking alongside parents, I have witnessed one truth: children learn just as much from what they see in our daily lives as from the books they read.</p><p>Educating requires patience, presence, and intentionality. When we listen to our children, celebrate their effort, and guide them with love and wisdom, we plant seeds that will bear fruit for generations.</p><p>Never underestimate the impact of an encouraging word around the family table before starting the day.</p>',
     imagen: '/cover_art_games.png',
     galeria: [],
     categoria: 'Familia & Educación',
@@ -90,9 +103,13 @@ const defaultNoticias = [
     id: 'b3',
     tipo: 'blog',
     titulo: 'Gratitud cotidiana: encontrar propósito bajo la sombrilla',
+    tituloEn: 'Everyday Gratitude: Finding Purpose Under the Umbrella',
     fraseDestacada: 'Aún en los días de lluvia, siempre hay refugio, enseñanza y motivo para agradecer.',
+    fraseDestacadaEn: 'Even on rainy days, there is always shelter, wisdom, and a reason to be thankful.',
     excerpt: 'Pequeñas pausas para reflexionar en medio de la rutina diaria y descubrir cómo Dios obra en cada detalle.',
+    excerptEn: 'Small pauses to reflect in the middle of our daily routine and discover how God works in every detail.',
     contenido: '<p>A veces esperamos grandes acontecimientos para sentirnos agradecidos, pero la verdadera plenitud se construye en los detalles sencillos de cada mañana: una conversación sincera, una oración en familia, la oportunidad de servir a alguien que necesita ánimo.</p><p>En este blog quiero compartir contigo esas reflexiones e imágenes que van marcando nuestro caminar en ConBERTAciones y Under the Umbrella.</p>',
+    contenidoEn: '<p>Sometimes we wait for major events to feel grateful, yet true fullness is built in the simple details of every morning: a sincere conversation, a family prayer, the opportunity to serve someone who needs encouragement.</p><p>In this blog I want to share with you those reflections and images that mark our journey in ConBERTAciones and Under the Umbrella.</p>',
     imagen: '/logo.png',
     galeria: [],
     categoria: 'Reflexiones',
@@ -218,6 +235,7 @@ const defaultNegocios = [
 
 // ─── APP COMPONENT ────────────────────────────────────────────────────────────
 function App() {
+  const { tr } = useLanguage();
   const [currentView, setCurrentView] = useState('home');
   const [prevView, setPrevView] = useState('home');
   const [activeEpisode, setActiveEpisode] = useState(null);
@@ -237,41 +255,53 @@ function App() {
     {
       id: 'ws_1',
       titulo: 'Discernimiento en Tiempos de Confusión Cultural',
+      tituloEn: 'Discernment in Times of Cultural Confusion',
       categoria: 'Cultura & Verdad Bíblica',
       versiculo: 'Romanos 12:2 — "No os conforméis a este siglo, sino transformaos por medio de la renovación de vuestro entendimiento"',
+      versiculoEn: 'Romans 12:2 — "Do not conform to the pattern of this world, but be transformed by the renewing of your mind"',
       autor: 'Familia Weyenberg',
       fecha: 'Octubre 2026',
       imagen: '/berta.jpeg',
       galeria: [],
       facebookUrl: '',
       resumen: 'Como familia creemos que cada fenómeno de nuestra actualidad no debe analizarse desde la reacción emocional ni las modas pasajeras, sino a través del estándar eterno e inmutable de la Palabra de Dios.',
+      resumenEn: 'As a family, we believe that every phenomenon of our current times should not be analyzed through emotional reaction or passing trends, but through the eternal and unchanging standard of the Word of God.',
       contenido: '<p>Vivimos en una época donde las corrientes de opinión cambian cada semana y donde la cultura intenta redefinir constantemente lo que es verdadero, bueno y justo. Sin embargo, como familia comprometida con la verdad bíblica, sostenemos que el creyente está llamado a ejercer un discernimiento profundo y compasivo.</p><p>Analizar los fenómenos actuales con un lente bíblico significa preguntar siempre: <strong>¿Qué dice la Escritura sobre la naturaleza humana, la familia, la justicia y la redención?</strong> Cuando miramos los titulares a través de Romanos 12:2, entendemos que nuestra mente necesita ser renovada diariamente por la Palabra para no ser arrastrados por el espíritu de la época.</p><p>Nuestro compromiso en <em>The Weyenberg Statement</em> es compartir reflexiones claras, fundamentadas en principios bíblicos eternos, que edifiquen a las familias y fortalezcan nuestra fe en medio de los desafíos del mundo contemporáneo.</p>',
+      contenidoEn: '<p>We live in an era where currents of opinion shift every week and culture constantly attempts to redefine what is true, good, and just. Yet as a family committed to biblical truth, we hold that believers are called to exercise deep and compassionate discernment.</p><p>Analyzing current events through a biblical lens means always asking: <strong>What does Scripture say about human nature, family, justice, and redemption?</strong> When we look at the headlines through Romans 12:2, we understand that our minds must be renewed daily by the Word so we are not swept away by the spirit of the age.</p><p>Our commitment in <em>The Weyenberg Statement</em> is to share clear reflections grounded in eternal biblical principles that build up families and strengthen our faith amid the challenges of the contemporary world.</p>',
     },
     {
       id: 'ws_2',
       titulo: 'La Educación de los Hijos: Una Responsabilidad Diseñada por Dios',
+      tituloEn: 'The Education of Children: A God-Designed Responsibility',
       categoria: 'Educación & Valores',
       versiculo: 'Deuteronomio 6:6-7 — "Y estas palabras que yo te mando hoy, estarán sobre tu corazón; y las repetirás a tus hijos"',
+      versiculoEn: 'Deuteronomy 6:6-7 — "These commandments that I give you today are to be on your hearts. Impress them on your children"',
       autor: 'Familia Weyenberg',
       fecha: 'Octubre 2026',
       imagen: '/cover_art_games.png',
       galeria: [],
       facebookUrl: '',
       resumen: 'Ante los debates actuales sobre quién debe formar el carácter y la cosmovisión de las nuevas generaciones, la Biblia establece con claridad que el hogar es el primer y principal centro de discipulado y formación.',
+      resumenEn: 'Amid current debates over who should shape the character and worldview of the next generation, the Bible clearly establishes that the home is the first and primary center of discipleship and formation.',
       contenido: '<p>Uno de los fenómenos más visibles de nuestra sociedad actual es la delegación total de la formación moral y espiritual de los hijos a las instituciones externas o a las pantallas digitales. Pero desde una cosmovisión bíblica, Dios confirió a los padres el privilegio y la responsabilidad irrenunciable de guiar el corazón de sus hijos.</p><p>En Deuteronomio 6 vemos que la enseñanza de los valores eternos ocurre en la cotidianidad del hogar: al sentarse en casa, al andar por el camino, al acostarse y al levantarse. La escuela instruye en ciencias y habilidades académicas, pero el carácter, la identidad y el temor de Dios se siembran en la mesa familiar.</p><p>Como educadores y como familia, afirmamos que cuando los padres asumen su rol bíblico con amor, intencionalidad y ejemplo, levantamos generaciones firmes, íntegras y preparadas para brillar en cualquier entorno.</p>',
+      contenidoEn: '<p>One of the most visible phenomena in our society today is the total delegation of children’s moral and spiritual formation to external institutions or digital screens. Yet from a biblical worldview, God entrusted parents with the privilege and irreplaceable responsibility of guiding their children’s hearts.</p><p>In Deuteronomy 6 we see that teaching eternal values happens in everyday home life: when sitting at home, walking along the road, lying down, and getting up. Schools instruct in sciences and academic skills, but character, identity, and the fear of God are sown around the family table.</p><p>As educators and as a family, we affirm that when parents embrace their biblical role with love, intentionality, and example, we raise up steadfast, upright generations prepared to shine in any environment.</p>',
     },
     {
       id: 'ws_3',
       titulo: 'Paz y Esperanza Soberana Frente a la Incertidumbre Global',
+      tituloEn: 'Sovereign Peace and Hope in the Face of Global Uncertainty',
       categoria: 'Actualidad & Fe',
       versiculo: 'Salmos 46:1-2 — "Dios es nuestro amparo y fortaleza, nuestro pronto auxilio en las tribulaciones"',
+      versiculoEn: 'Psalm 46:1-2 — "God is our refuge and strength, an ever-present help in trouble"',
       autor: 'Familia Weyenberg',
       fecha: 'Septiembre 2026',
       imagen: '/logo.png',
       galeria: [],
       facebookUrl: '',
       resumen: 'Frente a la polarización social, las crisis económicas y la ansiedad colectiva que dominan las noticias, recordamos que la historia no está fuera de control: descansa bajo la soberanía de Dios.',
+      resumenEn: 'Facing social polarization, economic crises, and collective anxiety dominating the news, we remember that history is not out of control: it rests under the sovereignty of God.',
       contenido: '<p>Al observar las noticias de hoy —conflictos, divisiones sociales e incertidumbre económica— es fácil comprender por qué tantas personas viven bajo un estado constante de temor. Las redes sociales amplifican la alarma, pero rara vez ofrecen una respuesta para el alma.</p><p>El lente bíblico nos permite ver la realidad sin negar los problemas, pero sin perder jamás la perspectiva del Trono de Dios. El Salmo 46 nos recuerda que aunque la tierra tiemble y los escenarios cambien, nuestro refugio permanece inconmovible.</p><p>La respuesta de la familia de fe ante la crisis nunca es el pánico ni el aislamiento, sino ser portadores de paz, verdad y servicio activo en nuestra comunidad.</p>',
+      contenidoEn: '<p>Looking at today’s news—conflicts, social divisions, and economic uncertainty—it is easy to understand why so many people live in a constant state of fear. Social media amplifies alarm, yet rarely offers an answer for the soul.</p><p>A biblical lens allows us to see reality without denying problems, while never losing sight of the Throne of God. Psalm 46 reminds us that even though the earth gives way and circumstances shift, our refuge remains unshakable.</p><p>The response of the family of faith in times of crisis is never panic or isolation, but being bearers of peace, truth, and active service in our community.</p>',
     },
   ];
 
@@ -395,9 +425,9 @@ function App() {
 
         // 5. Blog de Berta (stored in 'noticias')
         let storedNoticias = await getAll('noticias');
-        const hasLegacyNews = !storedNoticias || storedNoticias.length === 0 || storedNoticias.some(n => n.tipo === 'noticia');
+        const hasLegacyNews = !storedNoticias || storedNoticias.length === 0 || storedNoticias.some(n => n.tipo === 'noticia' || (n.id === 'b1' && !n.tituloEn));
         if (hasLegacyNews) {
-          const customBlogs = (storedNoticias || []).filter(n => n.tipo === 'blog' && n.id !== 'b1' && n.id !== 'b2');
+          const customBlogs = (storedNoticias || []).filter(n => n.tipo === 'blog' && n.id !== 'b1' && n.id !== 'b2' && n.id !== 'b3');
           storedNoticias = [...customBlogs, ...defaultNoticias];
           await clearStore('noticias');
           for (const n of storedNoticias) {
@@ -408,8 +438,10 @@ function App() {
 
         // 6. The Weyenberg Statements
         let storedStatements = await getAll('statements');
-        if (!storedStatements || storedStatements.length === 0) {
-          storedStatements = defaultStatements;
+        if (!storedStatements || storedStatements.length === 0 || storedStatements.some(st => st.id === 'ws_1' && !st.tituloEn)) {
+          const customSt = (storedStatements || []).filter(st => !['ws_1', 'ws_2', 'ws_3'].includes(st.id));
+          storedStatements = [...customSt, ...defaultStatements];
+          await clearStore('statements');
           for (const st of storedStatements) {
             await put('statements', st);
           }
@@ -778,13 +810,13 @@ function App() {
   const showNav = !FULLSCREEN.includes(currentView);
 
   const menuItems = [
-    { id: 'home', label: 'Inicio', icon: <Home size={18} /> },
-    { id: 'podcast', label: 'ConBERTAciones (Entrevistas)', icon: <Mic size={18} /> },
-    { id: 'umbrella', label: 'Under the Umbrella (Reflexiones)', icon: <BookOpen size={18} /> },
-    { id: 'noticias', label: 'Blog & Reflexiones', icon: <PenTool size={18} /> },
+    { id: 'home', label: tr('Inicio', 'Home'), icon: <Home size={18} /> },
+    { id: 'podcast', label: tr('ConBERTAciones (Entrevistas)', 'ConBERTAciones (Interviews)'), icon: <Mic size={18} /> },
+    { id: 'umbrella', label: tr('Under the Umbrella (Reflexiones)', 'Under the Umbrella (Reflections)'), icon: <BookOpen size={18} /> },
+    { id: 'noticias', label: tr('Blog & Reflexiones', 'Blog & Reflections'), icon: <PenTool size={18} /> },
     { id: 'statement', label: 'The Weyenberg Statement', icon: <Scale size={18} /> },
-    { id: 'speaker', label: 'Agenda una Charla', icon: <Award size={18} /> },
-    { id: 'conecta', label: 'Conecta', icon: <Mail size={18} /> },
+    { id: 'speaker', label: tr('Agenda una Charla', 'Book a Speaking Event'), icon: <Award size={18} /> },
+    { id: 'conecta', label: tr('Conecta', 'Connect'), icon: <Mail size={18} /> },
   ];
 
   if (loading) {
@@ -823,9 +855,12 @@ function App() {
       {/* ── Desktop Navigation Sidebar ── */}
       <aside className="desktop-sidebar">
         <div>
-          <div className="sidebar-logo">
+          <div className="sidebar-logo" style={{ marginBottom: '16px' }}>
             <img src="/logo.png" alt="ConBERTAciones Logo" />
             <h2 style={{ fontSize: '1.2rem', fontFamily: 'var(--font-serif)' }}>ConBERTAciones</h2>
+          </div>
+          <div style={{ marginBottom: '24px' }}>
+            <LanguageSwitch compact />
           </div>
           <nav className="sidebar-menu">
             {menuItems.map(item => (
@@ -847,7 +882,7 @@ function App() {
             </div>
             <div>
               <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>Berta Weyenberg</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Ver Perfil / Admin</div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{tr('Ver Perfil / Admin', 'View Profile / Admin')}</div>
             </div>
           </div>
           <div className="sidebar-footer-text">ConBERTAciones © 2026</div>
@@ -864,8 +899,11 @@ function App() {
             <Menu size={22} style={{ color: 'var(--text-primary)' }} />
           </button>
           <img src="/logo.png" alt="ConBERTAciones Logo" className="mobile-header-logo" />
-          <div className="mobile-header-profile" onClick={openProfile}>
-            <img src="/berta.jpeg" alt="Profile" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <LanguageSwitch compact />
+            <div className="mobile-header-profile" onClick={openProfile}>
+              <img src="/berta.jpeg" alt="Profile" />
+            </div>
           </div>
         </header>
 
@@ -902,6 +940,34 @@ function App() {
 
         <main className="main-content">
           {toast && <div className="toast-msg">{toast}</div>}
+
+          {/* ── Protagonist Bilingual Switch Bar (ES / EN) ── */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+              marginBottom: '20px',
+              padding: '10px 18px',
+              borderRadius: '18px',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(252,244,255,0.92) 100%)',
+              border: '1.5px solid rgba(218, 81, 246, 0.28)',
+              boxShadow: '0 8px 24px rgba(121, 35, 89, 0.07)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              <span style={{ fontSize: '1.05rem' }}>🌐</span>
+              <span>
+                {tr(
+                  'Idioma del sitio: Español (Cambia a Inglés en cualquier momento)',
+                  'Site Language: English (Switch to Spanish anytime)'
+                )}
+              </span>
+            </div>
+            <LanguageSwitch />
+          </div>
 
           {/* View Dispatcher */}
           <div style={{ display: currentView === 'home' ? 'block' : 'none' }}>
@@ -1141,17 +1207,17 @@ function App() {
             <button className={`nav-item ${currentView === 'home' ? 'active' : ''}`} onClick={() => setCurrentView('home')}>
               <div className="nav-dot" style={{ opacity: currentView === 'home' ? 1 : 0 }} />
               <Home size={20} />
-              <span className="nav-label">Inicio</span>
+              <span className="nav-label">{tr('Inicio', 'Home')}</span>
             </button>
             <button className={`nav-item ${currentView === 'podcast' ? 'active' : ''}`} onClick={() => setCurrentView('podcast')}>
               <div className="nav-dot" style={{ opacity: currentView === 'podcast' ? 1 : 0 }} />
               <Mic size={20} />
-              <span className="nav-label">Entrevistas</span>
+              <span className="nav-label">{tr('Entrevistas', 'Interviews')}</span>
             </button>
             <button className={`nav-item ${currentView === 'umbrella' ? 'active' : ''}`} onClick={() => setCurrentView('umbrella')}>
               <div className="nav-dot" style={{ opacity: currentView === 'umbrella' ? 1 : 0 }} />
               <BookOpen size={20} />
-              <span className="nav-label">Reflexiones</span>
+              <span className="nav-label">{tr('Reflexiones', 'Reflections')}</span>
             </button>
             <button className={`nav-item ${currentView === 'noticias' ? 'active' : ''}`} onClick={() => setCurrentView('noticias')}>
               <div className="nav-dot" style={{ opacity: currentView === 'noticias' ? 1 : 0 }} />
@@ -1166,12 +1232,12 @@ function App() {
             <button className={`nav-item ${currentView === 'speaker' ? 'active' : ''}`} onClick={() => setCurrentView('speaker')}>
               <div className="nav-dot" style={{ opacity: currentView === 'speaker' ? 1 : 0 }} />
               <Award size={20} />
-              <span className="nav-label">Charlas</span>
+              <span className="nav-label">{tr('Charlas', 'Speaking')}</span>
             </button>
             <button className={`nav-item ${currentView === 'conecta' ? 'active' : ''}`} onClick={() => setCurrentView('conecta')}>
               <div className="nav-dot" style={{ opacity: currentView === 'conecta' ? 1 : 0 }} />
               <Mail size={20} />
-              <span className="nav-label">Conecta</span>
+              <span className="nav-label">{tr('Conecta', 'Connect')}</span>
             </button>
           </nav>
         )}

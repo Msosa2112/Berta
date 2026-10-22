@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Play, BookOpen, MapPin, Clock, ArrowRight, Mic, Award, Mail, ChevronDown, Calendar, Scale, PenTool } from 'lucide-react';
+import { Play, BookOpen, MapPin, ArrowRight, Mic, Award, Mail, ChevronDown, Calendar, Scale, PenTool } from 'lucide-react';
 import { InteractiveHoverButton } from './InteractiveHoverButton';
+import { useLanguage } from '../utils/i18n.jsx';
 
 const BentoGrid = ({ children }) => {
   return <div className="magic-bento-grid reveal">{children}</div>;
@@ -36,6 +37,7 @@ const HomeView = ({
   onPlayReflectionAudio,
   onNavigate,
 }) => {
+  const { lang, tr } = useLanguage();
   const featuredEp = episodes[0];
   const recentInterviews = episodes.slice(0, 3);
   const recentReflections = reflections.slice(0, 4);
@@ -62,7 +64,10 @@ const HomeView = ({
               <div className="bio-text-block">
                 <h2 className="bio-name">Berta Weyenberg</h2>
                 <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--accent-terracotta)', letterSpacing: '0.03em', margin: '4px 0 8px 0' }}>
-                  Host de ConBERTAciones · Reflexiones &amp; Conferencista
+                  {tr(
+                    'Host de ConBERTAciones · Reflexiones & Conferencista',
+                    'Host of ConBERTAciones · Reflections & Public Speaker'
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '6px', fontSize: '0.78rem', color: 'var(--text-muted)', alignItems: 'center' }}>
                   <MapPin size={12} color="var(--accent-amber)" />
@@ -75,18 +80,31 @@ const HomeView = ({
             </div>
 
             <div className={`bio-collapsible-body${bioExpanded ? ' bio-collapsible-open' : ''}`}>
-              <p className="bio-description bio-description-full">
-                Originaria de Cuba, Berta Polo Weyenberg es educadora galardonada y figura central de la comunidad hispana en Kentucky. A través de sus entrevistas en <strong>ConBERTAciones</strong> y sus reflexiones bilingües en <strong>Under the Umbrella (Bajo la Sombrilla)</strong>, comparte mensajes de fe, esperanza, educación y propósito.
-              </p>
+              {lang === 'es' ? (
+                <p className="bio-description bio-description-full">
+                  Originaria de Cuba, Berta Polo Weyenberg es educadora galardonada y figura central de la comunidad hispana en Kentucky. A través de sus entrevistas en <strong>ConBERTAciones</strong> y sus reflexiones bilingües en <strong>Under the Umbrella (Bajo la Sombrilla)</strong>, comparte mensajes de fe, esperanza, educación y propósito.
+                </p>
+              ) : (
+                <p className="bio-description bio-description-full">
+                  Originally from Cuba, Berta Polo Weyenberg is an award-winning educator and central voice in Kentucky’s Hispanic community. Through her interviews on <strong>ConBERTAciones</strong> and her bilingual reflections on <strong>Under the Umbrella (Bajo la Sombrilla)</strong>, she shares messages of faith, hope, education, and purpose.
+                </p>
+              )}
               <div className="bio-quote">
                 <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <Mic size={16} color="var(--accent-terracotta)" />
-                  Dos espacios pensados para ti:
+                  {tr('Dos espacios pensados para ti:', 'Two spaces designed for you:')}
                 </strong>
-                <p style={{ marginTop: '4px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                  <strong>🎙️ ConBERTAciones:</strong> nuestro espacio de entrevistas profundas y conversaciones con invitados especiales.<br />
-                  <strong>☂️ Under the Umbrella:</strong> cápsulas y reflexiones cortas en Español e Inglés para inspirar tu día a día.
-                </p>
+                {lang === 'es' ? (
+                  <p style={{ marginTop: '4px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                    <strong>🎙️ ConBERTAciones:</strong> nuestro espacio de entrevistas profundas y conversaciones con invitados especiales.<br />
+                    <strong>☂️ Under the Umbrella:</strong> cápsulas y reflexiones cortas en Español e Inglés para inspirar tu día a día.
+                  </p>
+                ) : (
+                  <p style={{ marginTop: '4px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                    <strong>🎙️ ConBERTAciones:</strong> our space for in-depth interviews and meaningful conversations with special guests.<br />
+                    <strong>☂️ Under the Umbrella:</strong> short capsules and reflections in Spanish and English to inspire your everyday life.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -95,9 +113,19 @@ const HomeView = ({
         {/* Card 2: ConBERTAciones · Entrevistas (Span 8) */}
         <BentoCard
           Icon={Mic}
-          name="ConBERTAciones · Entrevistas"
-          description={featuredEp ? `Entrevistas y diálogos con invitados · Última: ${featuredEp.title.split('|')[0]}` : "Programa de entrevistas y conversaciones profundas con invitados especiales."}
-          cta="Ver todas las entrevistas"
+          name={tr('ConBERTAciones · Entrevistas', 'ConBERTAciones · Interviews')}
+          description={
+            featuredEp
+              ? tr(
+                  `Entrevistas y diálogos con invitados · Última: ${featuredEp.title.split('|')[0]}`,
+                  `Interviews and dialogues with guests · Latest: ${featuredEp.title.split('|')[0]}`
+                )
+              : tr(
+                  'Programa de entrevistas y conversaciones profundas con invitados especiales.',
+                  'In-depth interviews and inspiring conversations with special guests.'
+                )
+          }
+          cta={tr('Ver todas las entrevistas', 'View all interviews')}
           className="magic-bento-col-8 glow-purple"
           onClick={() => onNavigate('podcast')}
           background={
@@ -124,7 +152,7 @@ const HomeView = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                 <button className="btn-primary" style={{ padding: '8px 20px', fontSize: '0.82rem' }} onClick={(e) => { e.stopPropagation(); onPlay(featuredEp); }}>
                   <Play size={14} fill="currentColor" />
-                  <span>Escuchar última entrevista ({featuredEp.duration})</span>
+                  <span>{tr(`Escuchar última entrevista (${featuredEp.duration})`, `Listen to latest interview (${featuredEp.duration})`)}</span>
                 </button>
                 <div className="wave-container">
                   <div className="wave-bar"></div>
@@ -160,7 +188,7 @@ const HomeView = ({
                         🎙️ {ep.title}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        {ep.host && ep.host !== 'Berta Weyenberg' ? `Invitado(a): ${ep.host} · ` : ''}{ep.duration}
+                        {ep.host && ep.host !== 'Berta Weyenberg' ? `${tr('Invitado(a)', 'Guest')}: ${ep.host} · ` : ''}{ep.duration}
                       </div>
                     </div>
                     <button
@@ -170,7 +198,7 @@ const HomeView = ({
                         e.stopPropagation();
                         onPlay(ep);
                       }}
-                      title="Reproducir entrevista"
+                      title={tr('Reproducir entrevista', 'Play interview')}
                     >
                       <Play size={12} fill="currentColor" />
                     </button>
@@ -184,9 +212,12 @@ const HomeView = ({
         {/* Card 3: Under the Umbrella / Reflections (Span 4) */}
         <BentoCard
           Icon={BookOpen}
-          name="Under the Umbrella · Reflexiones"
-          description={`Cápsulas y reflexiones cortas bilingües (${reflections.length} episodios ES/EN) en lectura y audio para tu día a día.`}
-          cta="Ver todas las reflexiones"
+          name={tr('Under the Umbrella · Reflexiones', 'Under the Umbrella · Reflections')}
+          description={tr(
+            `Cápsulas y reflexiones cortas bilingües (${reflections.length} episodios ES/EN) en lectura y audio para tu día a día.`,
+            `Short bilingual capsules and reflections (${reflections.length} ES/EN episodes) in text and audio for your daily life.`
+          )}
+          cta={tr('Ver todas las reflexiones', 'View all reflections')}
           className="magic-bento-col-4 glow-amber"
           onClick={() => onNavigate('umbrella')}
         >
@@ -203,74 +234,84 @@ const HomeView = ({
         {/* Card 4: Últimas Reflexiones Bilingües (Span 8) */}
         <BentoCard
           Icon={BookOpen}
-          name="Últimas Reflexiones (Bajo la Sombrilla)"
-          description="Lee o escucha las reflexiones más recientes publicadas en Español e Inglés."
-          cta="Explorar archivo completo de reflexiones"
+          name={tr('Últimas Reflexiones (Bajo la Sombrilla)', 'Latest Reflections (Under the Umbrella)')}
+          description={tr(
+            'Lee o escucha las reflexiones más recientes publicadas en Español e Inglés.',
+            'Read or listen to the most recent reflections published in Spanish and English.'
+          )}
+          cta={tr('Explorar archivo completo de reflexiones', 'Explore full reflections archive')}
           className="magic-bento-col-8"
           onClick={() => onNavigate('umbrella')}
         >
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px', marginTop: '10px', marginBottom: '16px', pointerEvents: 'auto', width: '100%', zIndex: 10 }}>
-            {recentReflections.map((ref) => (
-              <div
-                key={ref.id}
-                className="glass-card glass-card-interactive"
-                style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px', border: '1px solid var(--glass-border)' }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onOpenReflection) onOpenReflection(ref);
-                  else onNavigate('umbrella');
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--accent-purple)' }}>☂️ ES / EN</span>
-                    {ref.releaseDate && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                        <Calendar size={10} /> {ref.releaseDate}
-                      </span>
+            {recentReflections.map((ref) => {
+              const primaryTitle = lang === 'en' ? (ref.titleEn || ref.titleEs) : (ref.titleEs || ref.titleEn);
+              const secondaryTitle = lang === 'en' ? ref.titleEs : ref.titleEn;
+              return (
+                <div
+                  key={ref.id}
+                  className="glass-card glass-card-interactive"
+                  style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px', border: '1px solid var(--glass-border)' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onOpenReflection) onOpenReflection(ref);
+                    else onNavigate('umbrella');
+                  }}
+                >
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                      <span style={{ fontWeight: 700, color: 'var(--accent-purple)' }}>☂️ ES / EN</span>
+                      {ref.releaseDate && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <Calendar size={10} /> {ref.releaseDate}
+                        </span>
+                      )}
+                    </div>
+                    <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 2px 0' }}>
+                      {primaryTitle}
+                    </h4>
+                    {secondaryTitle && secondaryTitle !== primaryTitle && (
+                      <div style={{ fontSize: '0.74rem', color: 'var(--accent-terracotta)', fontWeight: 600 }}>
+                        {secondaryTitle}
+                      </div>
                     )}
                   </div>
-                  <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 2px 0' }}>
-                    {ref.titleEs || ref.titleEn}
-                  </h4>
-                  {ref.titleEn && ref.titleEs && (
-                    <div style={{ fontSize: '0.74rem', color: 'var(--accent-terracotta)', fontWeight: 600 }}>
-                      {ref.titleEn}
-                    </div>
-                  )}
-                </div>
 
-                <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }} onClick={e => e.stopPropagation()}>
-                  {ref.audioEs && (
-                    <button
-                      className="btn-secondary"
-                      style={{ padding: '4px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
-                      onClick={() => onPlayReflectionAudio && onPlayReflectionAudio(ref, 'es')}
-                    >
-                      <Play size={10} fill="currentColor" /> ES ({ref.durationEs})
-                    </button>
-                  )}
-                  {ref.audioEn && (
-                    <button
-                      className="btn-secondary"
-                      style={{ padding: '4px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
-                      onClick={() => onPlayReflectionAudio && onPlayReflectionAudio(ref, 'en')}
-                    >
-                      <Play size={10} fill="currentColor" /> EN ({ref.durationEn})
-                    </button>
-                  )}
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }} onClick={e => e.stopPropagation()}>
+                    {ref.audioEs && (
+                      <button
+                        className="btn-secondary"
+                        style={{ padding: '4px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                        onClick={() => onPlayReflectionAudio && onPlayReflectionAudio(ref, 'es')}
+                      >
+                        <Play size={10} fill="currentColor" /> ES ({ref.durationEs})
+                      </button>
+                    )}
+                    {ref.audioEn && (
+                      <button
+                        className="btn-secondary"
+                        style={{ padding: '4px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                        onClick={() => onPlayReflectionAudio && onPlayReflectionAudio(ref, 'en')}
+                      >
+                        <Play size={10} fill="currentColor" /> EN ({ref.durationEn})
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </BentoCard>
 
         {/* Card 5: Public Speaker (Span 4) */}
         <BentoCard
           Icon={Award}
-          name="Agenda una Charla"
-          description="Invita a Berta como conferencista para tu escuela, grupo de fe o empresa."
-          cta="Agendar charla con Berta"
+          name={tr('Agenda una Charla', 'Book a Speaking Event')}
+          description={tr(
+            'Invita a Berta como conferencista para tu escuela, grupo de fe o empresa.',
+            'Invite Berta as a speaker for your school, faith group, or company.'
+          )}
+          cta={tr('Agendar charla con Berta', 'Book Berta as a speaker')}
           className="magic-bento-col-4 glow-amber"
           onClick={() => onNavigate('speaker')}
           background={
@@ -292,15 +333,15 @@ const HomeView = ({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '8px', marginBottom: '14px', zIndex: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>🎓</span>
-              <span>Educación de estudiantes e hijos</span>
+              <span>{tr('Educación de estudiantes e hijos', 'Student & parenting education')}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>✨</span>
-              <span>Grupos de damas y grupos de fe</span>
+              <span>{tr('Grupos de damas y grupos de fe', "Women's ministries & faith groups")}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>💼</span>
-              <span>Mensaje alentador para empresas</span>
+              <span>{tr('Mensaje alentador para empresas', 'Encouraging message for companies')}</span>
             </div>
           </div>
         </BentoCard>
@@ -309,8 +350,11 @@ const HomeView = ({
         <BentoCard
           Icon={Scale}
           name="The Weyenberg Statement"
-          description="Statements de la familia Weyenberg basados en conceptos bíblicos, analizando fenómenos de la actualidad con un lente bíblico."
-          cta="Leer todos los Statements"
+          description={tr(
+            'Statements de la familia Weyenberg basados en conceptos bíblicos, analizando fenómenos de la actualidad con un lente bíblico.',
+            'Statements by the Weyenberg family grounded in biblical concepts, analyzing current phenomena through a biblical lens.'
+          )}
+          cta={tr('Leer todos los Statements', 'Read all Statements')}
           className="magic-bento-col-6 glow-purple"
           onClick={() => onNavigate('statement')}
         >
@@ -328,19 +372,19 @@ const HomeView = ({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
                 <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--accent-terracotta)', letterSpacing: '0.03em' }}>
-                  {latestStatement.categoria || 'Cosmovisión Bíblica'}
+                  {latestStatement.categoria || tr('Cosmovisión Bíblica', 'Biblical Worldview')}
                 </span>
                 {latestStatement.versiculo && (
                   <span style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--accent-purple)' }}>
-                    📖 {latestStatement.versiculo.split('—')[0]}
+                    📖 {(lang === 'en' && latestStatement.versiculoEn ? latestStatement.versiculoEn : latestStatement.versiculo).split('—')[0]}
                   </span>
                 )}
               </div>
               <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                {latestStatement.titulo}
+                {lang === 'en' && latestStatement.tituloEn ? latestStatement.tituloEn : latestStatement.titulo}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {latestStatement.resumen}
+                {lang === 'en' && latestStatement.resumenEn ? latestStatement.resumenEn : latestStatement.resumen}
               </div>
             </div>
           )}
@@ -349,9 +393,12 @@ const HomeView = ({
         {/* Card 7: Blog de Berta · Reflexiones e Imágenes (Span 6) */}
         <BentoCard
           Icon={PenTool}
-          name="Blog de Berta · Reflexiones"
-          description="Reflexiones escritas, enseñanzas para la familia y galerías de imágenes compartidas por Berta."
-          cta="Ir al Blog de Berta"
+          name={tr('Blog de Berta · Reflexiones', "Berta's Blog · Reflections")}
+          description={tr(
+            'Reflexiones escritas, enseñanzas para la familia y galerías de imágenes compartidas por Berta.',
+            'Written reflections, family teachings, and image galleries shared by Berta.'
+          )}
+          cta={tr('Ir al Blog de Berta', "Go to Berta's Blog")}
           className="magic-bento-col-6 glow-amber"
           onClick={() => onNavigate('noticias')}
         >
@@ -369,14 +416,14 @@ const HomeView = ({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
                 <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--accent-purple)', letterSpacing: '0.03em' }}>
-                  ✍️ {latestBlog.categoria || 'Reflexiones'}
+                  ✍️ {latestBlog.categoria || tr('Reflexiones', 'Reflections')}
                 </span>
               </div>
               <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                {latestBlog.titulo}
+                {lang === 'en' && latestBlog.tituloEn ? latestBlog.tituloEn : latestBlog.titulo}
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-                {latestBlog.excerpt}
+                {lang === 'en' && latestBlog.excerptEn ? latestBlog.excerptEn : latestBlog.excerpt}
               </div>
             </div>
           )}
@@ -385,9 +432,12 @@ const HomeView = ({
         {/* Card 8: Conecta (Span 12) */}
         <BentoCard
           Icon={Mail}
-          name="Conecta con Berta"
-          description="Envía tus preguntas para el segmento Dame La Letra, comparte tu testimonio o agenda una conferencia."
-          cta="Ir a Conecta"
+          name={tr('Conecta con Berta', 'Connect with Berta')}
+          description={tr(
+            'Envía tus preguntas para el segmento Dame La Letra, comparte tu testimonio o agenda una conferencia.',
+            'Send your questions for the Dame La Letra segment, share your testimony, or book a speaking event.'
+          )}
+          cta={tr('Ir a Conecta', 'Go to Connect')}
           className="magic-bento-col-12 glow-purple"
           onClick={() => onNavigate('conecta')}
         >

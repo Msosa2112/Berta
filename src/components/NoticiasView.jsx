@@ -19,6 +19,7 @@ import {
   Sparkles,
   BookOpen,
 } from 'lucide-react';
+import { useLanguage, useAutoTranslated } from '../utils/i18n.jsx';
 
 const BLOG_CATEGORIES = [
   'Todos',
@@ -27,6 +28,18 @@ const BLOG_CATEGORIES = [
   'Familia & Educación',
   'Comunidad & Vida',
 ];
+
+const CAT_LABELS_EN = {
+  'Todos': 'All',
+  'Reflexiones': 'Reflections',
+  'Fe & Esperanza': 'Faith & Hope',
+  'Familia & Educación': 'Family & Education',
+  'Comunidad & Vida': 'Community & Life',
+  'Blog': 'Blog',
+  'Educación': 'Education',
+  'Cultura': 'Culture',
+  'Comunidad': 'Community',
+};
 
 const CAT_COLORS = {
   'Reflexiones':         { bg: '#fce7f3', text: '#db2777' },
@@ -64,12 +77,243 @@ const htmlToPlainText = (html = '') => {
     .trim();
 };
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return 'Reciente';
+const formatDate = (dateStr, lang = 'es') => {
+  if (!dateStr) return lang === 'en' ? 'Recent' : 'Reciente';
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
   const d = new Date(dateStr + 'T00:00:00');
   if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('es-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  return d.toLocaleDateString(lang === 'en' ? 'en-US' : 'es-US', { year: 'numeric', month: 'long', day: 'numeric' });
+};
+
+const BlogCardItem = ({ post, lang, tr, onSelect }) => {
+  const cat = CAT_COLORS[post.categoria] || { bg: '#fce7f3', text: '#db2777' };
+  const catLabel = lang === 'en' ? (CAT_LABELS_EN[post.categoria] || post.categoria) : post.categoria;
+  const title = useAutoTranslated(post.titulo, post.tituloEn, lang);
+  const quote = useAutoTranslated(post.fraseDestacada || '', post.fraseDestacadaEn, lang);
+  const excerptRaw = post.excerpt || stripHtml(post.contenido).slice(0, 150) + '...';
+  const excerpt = useAutoTranslated(excerptRaw, post.excerptEn, lang);
+
+  return (
+    <div className="article-card" onClick={() => onSelect(post)}>
+      <div className="article-img-container">
+        <span className="category-badge" style={{ background: cat.bg, color: cat.text }}>
+          {catLabel}
+        </span>
+        {post.galeria && post.galeria.length > 0 && (
+          <span
+            style={{
+              position: 'absolute',
+              top: '14px',
+              right: '14px',
+              padding: '4px 10px',
+              borderRadius: '999px',
+              background: 'rgba(0,0,0,0.65)',
+              color: '#fff',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              zIndex: 2,
+            }}
+          >
+            📸 +{post.galeria.length} {tr('fotos', 'photos')}
+          </span>
+        )}
+        <img
+          src={post.imagen || '/berta.jpeg'}
+          alt={title}
+          className="article-img"
+        />
+      </div>
+      <div className="article-body">
+        <h3 className="article-title">{title}</h3>
+        {quote && (
+          <div
+            style={{
+              fontSize: '0.76rem',
+              fontWeight: 600,
+              color: 'var(--accent-purple)',
+              fontStyle: 'italic',
+              marginBottom: '6px',
+            }}
+          >
+            “{quote}”
+          </div>
+        )}
+        <p className="article-excerpt">{excerpt}</p>
+        <div className="article-meta">
+          <span>
+            <User size={12} /> {post.autor || 'Berta Weyenberg'}
+          </span>
+          <span>
+            <Clock size={12} /> {post.lectura || 4} min
+          </span>
+          <span>{formatDate(post.fecha, lang)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const BlogReaderModal = ({ post, lang, tr, onClose, onShare }) => {
+  const catLabel = lang === 'en' ? (CAT_LABELS_EN[post.categoria] || post.categoria) : post.categoria;
+  const title = useAutoTranslated(post.titulo, post.tituloEn, lang);
+  const quote = useAutoTranslated(post.fraseDestacada || '', post.fraseDestacadaEn, lang);
+  const plainBody = htmlToPlainText(post.contenido || post.excerpt || '');
+  const translatedPlain = useAutoTranslated(plainBody, post.contenidoEn ? htmlToPlainText(post.contenidoEn) : '', lang);
+  const finalHtml = lang === 'en'
+    ? (post.contenidoEn || formatParagraphsToHtml(translatedPlain))
+    : formatParagraphsToHtml(post.contenido || post.excerpt);
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1100,
+        background: 'rgba(14, 13, 20, 0.72)',
+        backdropFilter: 'blur(12px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '20px',
+        overflowY: 'auto',
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="glass-card"
+        style={{
+          maxWidth: '780px',
+          width: '100%',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          padding: '32px',
+          background: '#ffffff',
+          border: '1px solid var(--glass-border)',
+          position: 'relative',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="icon-btn"
+          style={{
+            position: 'sticky',
+            top: '0',
+            float: 'right',
+            background: 'rgba(121, 35, 89, 0.1)',
+            color: 'var(--text-primary)',
+            zIndex: 10,
+          }}
+          title={tr('Cerrar lectura', 'Close reader')}
+        >
+          <X size={18} />
+        </button>
+
+        <div style={{ marginBottom: '16px' }}>
+          <span className="editorial-tag">{tr('Blog de Berta', "Berta's Blog")} · {catLabel}</span>
+          <h2 style={{ fontSize: '1.85rem', margin: '6px 0 10px 0', color: 'var(--text-primary)', lineHeight: 1.25 }}>
+            {title}
+          </h2>
+          <div style={{ display: 'flex', gap: '14px', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+            <span>✍️ {post.autor || 'Berta Weyenberg'}</span>
+            <span>📅 {formatDate(post.fecha, lang)}</span>
+            <span>⏱️ {post.lectura || 4} {tr('min de lectura', 'min read')}</span>
+          </div>
+        </div>
+
+        {quote && (
+          <div
+            style={{
+              padding: '14px 18px',
+              borderRadius: '14px',
+              background: 'linear-gradient(135deg, rgba(121, 35, 89, 0.08), rgba(218, 81, 246, 0.12))',
+              borderLeft: '4px solid var(--accent-purple)',
+              marginBottom: '20px',
+            }}
+          >
+            <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', fontStyle: 'italic' }}>
+              “{quote}”
+            </div>
+          </div>
+        )}
+
+        {post.imagen && (
+          <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '22px', maxHeight: '380px' }}>
+            <img
+              src={post.imagen}
+              alt={title}
+              style={{ width: '100%', maxHeight: '380px', objectFit: 'cover', display: 'block' }}
+            />
+          </div>
+        )}
+
+        <div
+          className="editorial-body"
+          style={{ fontSize: '1rem', lineHeight: 1.8, color: 'var(--text-secondary)', marginBottom: '24px' }}
+          dangerouslySetInnerHTML={{ __html: finalHtml }}
+        />
+
+        {/* Additional Gallery Images if uploaded */}
+        {post.galeria && post.galeria.length > 0 && (
+          <div style={{ marginTop: '20px', marginBottom: '24px' }}>
+            <h4 style={{ fontSize: '0.95rem', marginBottom: '12px', color: 'var(--text-primary)' }}>
+              📸 {tr('Galería de Imágenes', 'Photo Gallery')} ({post.galeria.length})
+            </h4>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '12px',
+              }}
+            >
+              {post.galeria.map((imgUrl, i) => (
+                <img
+                  key={i}
+                  src={imgUrl}
+                  alt={`${title} - ${i + 1}`}
+                  style={{
+                    width: '100%',
+                    height: '200px',
+                    objectFit: 'cover',
+                    borderRadius: '12px',
+                    border: '1px solid var(--glass-border)',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+            paddingTop: '18px',
+            borderTop: '1px solid var(--glass-border)',
+          }}
+        >
+          <button
+            className="btn-secondary"
+            style={{ padding: '9px 16px', fontSize: '0.82rem' }}
+            onClick={() => onShare(post)}
+          >
+            <Share2 size={14} /> {tr('Compartir Reflexión', 'Share Reflection')}
+          </button>
+
+          <button
+            className="btn-primary"
+            style={{ padding: '9px 20px', fontSize: '0.82rem' }}
+            onClick={onClose}
+          >
+            {tr('Cerrar', 'Close')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const NoticiasView = ({
@@ -79,6 +323,7 @@ const NoticiasView = ({
   onDeleteNoticia,
   triggerToast,
 }) => {
+  const { lang, tr } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [activePost, setActivePost] = useState(null);
@@ -119,14 +364,14 @@ const NoticiasView = ({
   const [editingId, setEditingId] = useState(null); // null | 'new' | post.id
   const [form, setForm] = useState(emptyForm);
 
-  // Only show blog/reflection entries (or all entries if legacy)
+  // Only show blog/reflection entries
   const blogPosts = noticias.filter(n => n.tipo === 'blog' || !n.tipo);
 
   const filteredPosts = blogPosts.filter(post => {
     if (selectedCategory !== 'Todos' && post.categoria !== selectedCategory) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const matchTitle = (post.titulo || '').toLowerCase().includes(q);
+      const matchTitle = (post.titulo || '').toLowerCase().includes(q) || (post.tituloEn || '').toLowerCase().includes(q);
       const matchQuote = (post.fraseDestacada || '').toLowerCase().includes(q);
       const matchBody = stripHtml(post.contenido || post.excerpt || '').toLowerCase().includes(q);
       return matchTitle || matchQuote || matchBody;
@@ -135,6 +380,13 @@ const NoticiasView = ({
   });
 
   const featuredPost = filteredPosts[0];
+  const featuredTitle = useAutoTranslated(featuredPost?.titulo || '', featuredPost?.tituloEn, lang);
+  const featuredQuote = useAutoTranslated(featuredPost?.fraseDestacada || '', featuredPost?.fraseDestacadaEn, lang);
+  const featuredExcerpt = useAutoTranslated(
+    featuredPost ? (featuredPost.excerpt || stripHtml(featuredPost.contenido).slice(0, 220) + '...') : '',
+    featuredPost?.excerptEn,
+    lang
+  );
 
   // Admin Login Handler (same credentials: weyenberg / statement2026)
   const handleAdminLogin = (e) => {
@@ -152,9 +404,9 @@ const NoticiasView = ({
       } catch {}
       setLoginUser('');
       setLoginPass('');
-      if (triggerToast) triggerToast('Bienvenida al Panel del Blog de Berta');
+      if (triggerToast) triggerToast(tr('Bienvenida al Panel del Blog de Berta', "Welcome to Berta's Blog Admin Panel"));
     } else {
-      if (triggerToast) triggerToast('Usuario o contraseña incorrectos');
+      if (triggerToast) triggerToast(tr('Usuario o contraseña incorrectos', 'Invalid username or password'));
     }
   };
 
@@ -220,7 +472,7 @@ const NoticiasView = ({
   const handleSavePost = async (e) => {
     e.preventDefault();
     if (!form.titulo.trim() || !form.contenidoRaw.trim()) {
-      if (triggerToast) triggerToast('Por favor completa el título y la reflexión del blog');
+      if (triggerToast) triggerToast(tr('Por favor completa el título y la reflexión del blog', 'Please complete the title and blog reflection'));
       return;
     }
 
@@ -246,10 +498,10 @@ const NoticiasView = ({
 
     if (editingId === 'new') {
       if (onAddNoticia) await onAddNoticia(payload);
-      if (triggerToast) triggerToast('¡Reflexión publicada en el Blog!');
+      if (triggerToast) triggerToast(tr('¡Reflexión publicada en el Blog!', 'Reflection published to Blog!'));
     } else {
       if (onUpdateNoticia) await onUpdateNoticia(payload);
-      if (triggerToast) triggerToast('¡Publicación del Blog actualizada!');
+      if (triggerToast) triggerToast(tr('¡Publicación del Blog actualizada!', 'Blog post updated!'));
     }
 
     setEditingId(null);
@@ -257,10 +509,10 @@ const NoticiasView = ({
   };
 
   const handleDelete = async (id, titulo) => {
-    if (window.confirm(`¿Estás segura de eliminar "${titulo}" del Blog?`)) {
+    if (window.confirm(tr(`¿Estás segura de eliminar "${titulo}" del Blog?`, `Are you sure you want to delete "${titulo}" from the Blog?`))) {
       if (onDeleteNoticia) await onDeleteNoticia(id);
       if (activePost?.id === id) setActivePost(null);
-      if (triggerToast) triggerToast('Publicación eliminada del Blog');
+      if (triggerToast) triggerToast(tr('Publicación eliminada del Blog', 'Post deleted from Blog'));
     }
   };
 
@@ -273,7 +525,7 @@ const NoticiasView = ({
       }).catch(() => {});
     } else {
       navigator.clipboard?.writeText(window.location.href);
-      if (triggerToast) triggerToast('Enlace copiado al portapapeles');
+      if (triggerToast) triggerToast(tr('Enlace copiado al portapapeles', 'Link copied to clipboard'));
     }
   };
 
@@ -294,13 +546,16 @@ const NoticiasView = ({
                 gap: '6px',
               }}
             >
-              <PenTool size={13} /> Blog Personal · Reflexiones &amp; Vivencias
+              <PenTool size={13} /> {tr('Blog Personal · Reflexiones & Vivencias', 'Personal Blog · Reflections & Stories')}
             </span>
             <h1 style={{ fontSize: '2.2rem', marginBottom: '8px', fontFamily: 'var(--font-serif)' }}>
-              Blog de Berta · Reflexiones
+              {tr('Blog de Berta · Reflexiones', "Berta's Blog · Reflections")}
             </h1>
             <p style={{ color: 'var(--text-muted)', maxWidth: '680px', margin: 0, lineHeight: 1.6 }}>
-              Un espacio íntimo donde Berta Weyenberg comparte reflexiones escritas, enseñanzas para la familia, momentos especiales e imágenes que edifican el alma.
+              {tr(
+                'Un espacio íntimo donde Berta Weyenberg comparte reflexiones escritas, enseñanzas para la familia, momentos especiales e imágenes que edifican el alma.',
+                'An intimate space where Berta Weyenberg shares written reflections, teachings for the family, special moments, and images that uplift the soul.'
+              )}
             </p>
           </div>
 
@@ -318,7 +573,7 @@ const NoticiasView = ({
               onClick={() => setIsAdminOpen(!isAdminOpen)}
             >
               <Lock size={14} />
-              <span>{isAdminOpen ? 'Cerrar Panel del Blog' : 'Administrar Blog'}</span>
+              <span>{isAdminOpen ? tr('Cerrar Panel del Blog', 'Close Blog Panel') : tr('Administrar Blog', 'Manage Blog')}</span>
             </button>
           </div>
         </div>
@@ -358,15 +613,18 @@ const NoticiasView = ({
                   <Lock size={22} />
                 </div>
                 <h3 style={{ fontSize: '1.25rem', margin: '0 0 4px 0', color: 'var(--text-primary)' }}>
-                  Acceso al Blog de Berta
+                  {tr('Acceso al Blog de Berta', "Berta's Blog Admin Login")}
                 </h3>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-                  Ingresa con el mismo usuario y contraseña para publicar reflexiones e imágenes en tu Blog.
+                  {tr(
+                    'Ingresa con el mismo usuario y contraseña para publicar reflexiones e imágenes en tu Blog.',
+                    'Sign in with the same username and password to publish reflections and images to your Blog.'
+                  )}
                 </p>
               </div>
 
               <div className="form-group" style={{ marginBottom: '14px' }}>
-                <label className="form-label">Usuario</label>
+                <label className="form-label">{tr('Usuario', 'Username')}</label>
                 <input
                   type="text"
                   className="form-control"
@@ -378,12 +636,12 @@ const NoticiasView = ({
               </div>
 
               <div className="form-group" style={{ marginBottom: '18px' }}>
-                <label className="form-label">Contraseña</label>
+                <label className="form-label">{tr('Contraseña', 'Password')}</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showPass ? 'text' : 'password'}
                     className="form-control"
-                    placeholder="Ingresa tu contraseña"
+                    placeholder={tr('Ingresa tu contraseña', 'Enter your password')}
                     value={loginPass}
                     onChange={e => setLoginPass(e.target.value)}
                     style={{ paddingRight: '42px' }}
@@ -409,7 +667,7 @@ const NoticiasView = ({
               </div>
 
               <button type="submit" className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                Entrar al Panel del Blog
+                {tr('Entrar al Panel del Blog', 'Enter Blog Panel')}
               </button>
             </form>
           ) : (
@@ -429,10 +687,10 @@ const NoticiasView = ({
               >
                 <div>
                   <span className="editorial-tag" style={{ marginBottom: '4px' }}>
-                    Panel de Edición · Blog &amp; Reflexiones
+                    {tr('Panel de Edición · Blog & Reflexiones', 'Editor Panel · Blog & Reflections')}
                   </span>
                   <h3 style={{ fontSize: '1.3rem', margin: 0, color: 'var(--text-primary)' }}>
-                    Gestionar Reflexiones e Imágenes del Blog ({blogPosts.length})
+                    {tr(`Gestionar Reflexiones e Imágenes del Blog (${blogPosts.length})`, `Manage Blog Reflections & Images (${blogPosts.length})`)}
                   </h3>
                 </div>
 
@@ -444,7 +702,7 @@ const NoticiasView = ({
                       style={{ padding: '9px 18px', fontSize: '0.82rem' }}
                       onClick={startNewPost}
                     >
-                      <Plus size={15} /> Nueva Reflexión / Entrada
+                      <Plus size={15} /> {tr('Nueva Reflexión / Entrada', 'New Reflection / Post')}
                     </button>
                   )}
                   <button
@@ -457,10 +715,10 @@ const NoticiasView = ({
                       try {
                         sessionStorage.removeItem('weyenberg_admin_auth');
                       } catch {}
-                      if (triggerToast) triggerToast('Sesión cerrada');
+                      if (triggerToast) triggerToast(tr('Sesión cerrada', 'Logged out'));
                     }}
                   >
-                    <LogOut size={14} /> Salir
+                    <LogOut size={14} /> {tr('Salir', 'Log out')}
                   </button>
                 </div>
               </div>
@@ -470,7 +728,9 @@ const NoticiasView = ({
                 <form onSubmit={handleSavePost} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--accent-purple)' }}>
-                      {editingId === 'new' ? '✨ Publicar Nueva Reflexión en el Blog' : '✏️ Editar Reflexión del Blog'}
+                      {editingId === 'new'
+                        ? tr('✨ Publicar Nueva Reflexión en el Blog', '✨ Publish New Reflection to Blog')
+                        : tr('✏️ Editar Reflexión del Blog', '✏️ Edit Blog Reflection')}
                     </h4>
                     <button
                       type="button"
@@ -478,17 +738,17 @@ const NoticiasView = ({
                       style={{ padding: '6px 12px', fontSize: '0.76rem' }}
                       onClick={() => setEditingId(null)}
                     >
-                      Cancelar
+                      {tr('Cancelar', 'Cancel')}
                     </button>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label">Título de la Reflexión / Artículo *</label>
+                      <label className="form-label">{tr('Título de la Reflexión / Artículo *', 'Reflection / Post Title *')}</label>
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="Ej. El poder de la fe en tiempos de incertidumbre"
+                        placeholder={tr('Ej. El poder de la fe en tiempos de incertidumbre', 'E.g. The power of faith in uncertain times')}
                         value={form.titulo}
                         onChange={e => setForm({ ...form, titulo: e.target.value })}
                         required
@@ -496,14 +756,16 @@ const NoticiasView = ({
                     </div>
 
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label">Categoría</label>
+                      <label className="form-label">{tr('Categoría', 'Category')}</label>
                       <select
                         className="form-control"
                         value={form.categoria}
                         onChange={e => setForm({ ...form, categoria: e.target.value })}
                       >
                         {BLOG_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
+                          <option key={cat} value={cat}>
+                            {lang === 'en' ? (CAT_LABELS_EN[cat] || cat) : cat}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -511,7 +773,7 @@ const NoticiasView = ({
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label">Frase Destacada o Versículo (opcional)</label>
+                      <label className="form-label">{tr('Frase Destacada o Versículo (opcional)', 'Featured Quote or Verse (optional)')}</label>
                       <input
                         type="text"
                         className="form-control"
@@ -522,7 +784,7 @@ const NoticiasView = ({
                     </div>
 
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label">Autor(a)</label>
+                      <label className="form-label">{tr('Autor(a)', 'Author')}</label>
                       <input
                         type="text"
                         className="form-control"
@@ -533,7 +795,7 @@ const NoticiasView = ({
                     </div>
 
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label">Fecha</label>
+                      <label className="form-label">{tr('Fecha', 'Date')}</label>
                       <input
                         type="date"
                         className="form-control"
@@ -554,7 +816,7 @@ const NoticiasView = ({
                       }}
                     >
                       <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                        <ImageIcon size={15} color="var(--accent-purple)" /> Imagen Principal de Portada
+                        <ImageIcon size={15} color="var(--accent-purple)" /> {tr('Imagen Principal de Portada', 'Main Cover Image')}
                       </label>
                       <input
                         type="file"
@@ -565,7 +827,7 @@ const NoticiasView = ({
                       <input
                         type="text"
                         className="form-control"
-                        placeholder="O pega la URL de una imagen..."
+                        placeholder={tr('O pega la URL de una imagen...', 'Or paste an image URL...')}
                         value={form.imagen && !form.imagen.startsWith('data:') ? form.imagen : ''}
                         onChange={e => setForm({ ...form, imagen: e.target.value })}
                         style={{ fontSize: '0.8rem', padding: '8px 12px' }}
@@ -609,7 +871,7 @@ const NoticiasView = ({
                       }}
                     >
                       <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                        <ImageIcon size={15} color="var(--accent-terracotta)" /> Galería de Imágenes (Subir varias fotos)
+                        <ImageIcon size={15} color="var(--accent-terracotta)" /> {tr('Galería de Imágenes (Subir varias fotos)', 'Photo Gallery (Upload multiple photos)')}
                       </label>
                       <input
                         type="file"
@@ -619,7 +881,7 @@ const NoticiasView = ({
                         style={{ fontSize: '0.78rem', marginBottom: '8px', width: '100%' }}
                       />
                       <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0 0 8px 0' }}>
-                        Sube fotos adicionales para acompañar tu reflexión en el Blog.
+                        {tr('Sube fotos adicionales para acompañar tu reflexión en el Blog.', 'Upload additional photos to accompany your reflection in the Blog.')}
                       </p>
                       {form.galeria && form.galeria.length > 0 && (
                         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
@@ -657,22 +919,22 @@ const NoticiasView = ({
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label">Resumen corto (opcional, se genera solo si lo dejas vacío)</label>
+                    <label className="form-label">{tr('Resumen corto (opcional, se genera solo si lo dejas vacío)', 'Short summary (optional, auto-generated if left blank)')}</label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Breve introducción que se verá en la tarjeta del Blog..."
+                      placeholder={tr('Breve introducción que se verá en la tarjeta del Blog...', 'Brief introduction shown on the Blog card...')}
                       value={form.excerpt}
                       onChange={e => setForm({ ...form, excerpt: e.target.value })}
                     />
                   </div>
 
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label">Texto de la Reflexión / Entrada del Blog *</label>
+                    <label className="form-label">{tr('Texto de la Reflexión / Entrada del Blog *', 'Reflection / Blog Post Text *')}</label>
                     <textarea
                       className="form-control"
                       rows={9}
-                      placeholder="Escribe o pega aquí tu reflexión completa. Los saltos de línea se convertirán automáticamente en párrafos..."
+                      placeholder={tr('Escribe o pega aquí tu reflexión completa. Los saltos de línea se convertirán automáticamente en párrafos...', 'Write or paste your full reflection here. Line breaks are automatically converted into paragraphs...')}
                       value={form.contenidoRaw}
                       onChange={e => setForm({ ...form, contenidoRaw: e.target.value })}
                       required
@@ -685,11 +947,11 @@ const NoticiasView = ({
                       className="btn-secondary"
                       onClick={() => setEditingId(null)}
                     >
-                      Cancelar
+                      {tr('Cancelar', 'Cancel')}
                     </button>
                     <button type="submit" className="btn-primary">
                       <CheckCircle2 size={16} />
-                      <span>{editingId === 'new' ? 'Publicar en el Blog' : 'Guardar Cambios'}</span>
+                      <span>{editingId === 'new' ? tr('Publicar en el Blog', 'Publish to Blog') : tr('Guardar Cambios', 'Save Changes')}</span>
                     </button>
                   </div>
                 </form>
@@ -718,11 +980,11 @@ const NoticiasView = ({
                         />
                         <div style={{ minWidth: 0 }}>
                           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {post.titulo}
+                            {lang === 'en' && post.tituloEn ? post.tituloEn : post.titulo}
                           </div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                            {post.categoria} · {formatDate(post.fecha)}
-                            {post.galeria?.length > 0 ? ` · 📸 ${post.galeria.length} fotos` : ''}
+                            {lang === 'en' ? (CAT_LABELS_EN[post.categoria] || post.categoria) : post.categoria} · {formatDate(post.fecha, lang)}
+                            {post.galeria?.length > 0 ? ` · 📸 ${post.galeria.length} ${tr('fotos', 'photos')}` : ''}
                           </div>
                         </div>
                       </div>
@@ -731,7 +993,7 @@ const NoticiasView = ({
                         <button
                           type="button"
                           className="biz-btn-icon"
-                          title="Editar reflexión"
+                          title={tr('Editar reflexión', 'Edit reflection')}
                           onClick={() => startEditPost(post)}
                         >
                           <Edit2 size={14} />
@@ -739,7 +1001,7 @@ const NoticiasView = ({
                         <button
                           type="button"
                           className="biz-btn-icon"
-                          title="Eliminar reflexión"
+                          title={tr('Eliminar reflexión', 'Delete reflection')}
                           style={{ color: '#DC2626' }}
                           onClick={() => handleDelete(post.id, post.titulo)}
                         >
@@ -780,21 +1042,21 @@ const NoticiasView = ({
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
                 <span className="editorial-tag" style={{ background: 'var(--accent-purple)', color: '#fff', margin: 0 }}>
                   <Sparkles size={11} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-                  Reflexión Destacada
+                  {tr('Reflexión Destacada', 'Featured Reflection')}
                 </span>
                 <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-terracotta)' }}>
-                  {featuredPost.categoria}
+                  {lang === 'en' ? (CAT_LABELS_EN[featuredPost.categoria] || featuredPost.categoria) : featuredPost.categoria}
                 </span>
                 <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Calendar size={12} /> {formatDate(featuredPost.fecha)}
+                  <Calendar size={12} /> {formatDate(featuredPost.fecha, lang)}
                 </span>
               </div>
 
               <h2 style={{ fontSize: '1.65rem', margin: '0 0 10px 0', color: 'var(--text-primary)', lineHeight: 1.25 }}>
-                {featuredPost.titulo}
+                {featuredTitle}
               </h2>
 
-              {featuredPost.fraseDestacada && (
+              {featuredQuote && (
                 <div
                   style={{
                     padding: '8px 14px',
@@ -808,12 +1070,12 @@ const NoticiasView = ({
                     fontStyle: 'italic',
                   }}
                 >
-                  “{featuredPost.fraseDestacada}”
+                  “{featuredQuote}”
                 </div>
               )}
 
               <p style={{ fontSize: '0.92rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '0 0 18px 0' }}>
-                {featuredPost.excerpt || stripHtml(featuredPost.contenido).slice(0, 220) + '...'}
+                {featuredExcerpt}
               </p>
 
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
@@ -823,7 +1085,7 @@ const NoticiasView = ({
                   onClick={() => setActivePost(featuredPost)}
                 >
                   <BookOpen size={15} />
-                  <span>Leer Reflexión Completa</span>
+                  <span>{tr('Leer Reflexión Completa', 'Read Full Reflection')}</span>
                 </button>
               </div>
             </div>
@@ -840,7 +1102,7 @@ const NoticiasView = ({
               >
                 <img
                   src={featuredPost.imagen}
-                  alt={featuredPost.titulo}
+                  alt={featuredTitle}
                   style={{ width: '100%', height: '260px', objectFit: 'cover', display: 'block' }}
                 />
               </div>
@@ -867,7 +1129,7 @@ const NoticiasView = ({
               className={`category-pill ${selectedCategory === cat ? 'active' : ''}`}
               onClick={() => setSelectedCategory(cat)}
             >
-              {cat}
+              {lang === 'en' ? (CAT_LABELS_EN[cat] || cat) : cat}
             </button>
           ))}
         </div>
@@ -886,7 +1148,7 @@ const NoticiasView = ({
           <input
             type="text"
             className="form-control"
-            placeholder="Buscar reflexión en el Blog..."
+            placeholder={tr('Buscar reflexión en el Blog...', 'Search reflection in Blog...')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{ paddingLeft: '40px', paddingRight: '14px', height: '42px', fontSize: '0.85rem' }}
@@ -897,227 +1159,31 @@ const NoticiasView = ({
       {/* ── Grid of Blog Reflections ── */}
       {filteredPosts.length === 0 ? (
         <div className="glass-card" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
-          No se encontraron reflexiones con ese criterio.
+          {tr('No se encontraron reflexiones con ese criterio.', 'No reflections found matching that criteria.')}
         </div>
       ) : (
         <div className="noticias-grid">
-          {filteredPosts.map(post => {
-            const cat = CAT_COLORS[post.categoria] || { bg: '#fce7f3', text: '#db2777' };
-            return (
-              <div key={post.id} className="article-card" onClick={() => setActivePost(post)}>
-                <div className="article-img-container">
-                  <span className="category-badge" style={{ background: cat.bg, color: cat.text }}>
-                    {post.categoria}
-                  </span>
-                  {post.galeria && post.galeria.length > 0 && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '14px',
-                        right: '14px',
-                        padding: '4px 10px',
-                        borderRadius: '999px',
-                        background: 'rgba(0,0,0,0.65)',
-                        color: '#fff',
-                        fontSize: '0.7rem',
-                        fontWeight: 700,
-                        zIndex: 2,
-                      }}
-                    >
-                      📸 +{post.galeria.length} fotos
-                    </span>
-                  )}
-                  <img
-                    src={post.imagen || '/berta.jpeg'}
-                    alt={post.titulo}
-                    className="article-img"
-                  />
-                </div>
-                <div className="article-body">
-                  <h3 className="article-title">{post.titulo}</h3>
-                  {post.fraseDestacada && (
-                    <div
-                      style={{
-                        fontSize: '0.76rem',
-                        fontWeight: 600,
-                        color: 'var(--accent-purple)',
-                        fontStyle: 'italic',
-                        marginBottom: '6px',
-                      }}
-                    >
-                      “{post.fraseDestacada}”
-                    </div>
-                  )}
-                  <p className="article-excerpt">{post.excerpt || stripHtml(post.contenido).slice(0, 150) + '...'}</p>
-                  <div className="article-meta">
-                    <span>
-                      <User size={12} /> {post.autor || 'Berta Weyenberg'}
-                    </span>
-                    <span>
-                      <Clock size={12} /> {post.lectura || 4} min
-                    </span>
-                    <span>{formatDate(post.fecha)}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {filteredPosts.map(post => (
+            <BlogCardItem
+              key={post.id}
+              post={post}
+              lang={lang}
+              tr={tr}
+              onSelect={setActivePost}
+            />
+          ))}
         </div>
       )}
 
       {/* ── Fullscreen Reader Modal for Blog Post & Gallery ── */}
       {activePost && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1100,
-            background: 'rgba(14, 13, 20, 0.72)',
-            backdropFilter: 'blur(12px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            overflowY: 'auto',
-          }}
-          onClick={() => setActivePost(null)}
-        >
-          <div
-            className="glass-card"
-            style={{
-              maxWidth: '780px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              padding: '32px',
-              background: '#ffffff',
-              border: '1px solid var(--glass-border)',
-              position: 'relative',
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setActivePost(null)}
-              className="icon-btn"
-              style={{
-                position: 'sticky',
-                top: '0',
-                float: 'right',
-                background: 'rgba(121, 35, 89, 0.1)',
-                color: 'var(--text-primary)',
-                zIndex: 10,
-              }}
-              title="Cerrar lectura"
-            >
-              <X size={18} />
-            </button>
-
-            <div style={{ marginBottom: '16px' }}>
-              <span className="editorial-tag">Blog de Berta · {activePost.categoria}</span>
-              <h2 style={{ fontSize: '1.85rem', margin: '6px 0 10px 0', color: 'var(--text-primary)', lineHeight: 1.25 }}>
-                {activePost.titulo}
-              </h2>
-              <div style={{ display: 'flex', gap: '14px', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-                <span>✍️ {activePost.autor || 'Berta Weyenberg'}</span>
-                <span>📅 {formatDate(activePost.fecha)}</span>
-                <span>⏱️ {activePost.lectura || 4} min de lectura</span>
-              </div>
-            </div>
-
-            {activePost.fraseDestacada && (
-              <div
-                style={{
-                  padding: '14px 18px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, rgba(121, 35, 89, 0.08), rgba(218, 81, 246, 0.12))',
-                  borderLeft: '4px solid var(--accent-purple)',
-                  marginBottom: '20px',
-                }}
-              >
-                <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', fontStyle: 'italic' }}>
-                  “{activePost.fraseDestacada}”
-                </div>
-              </div>
-            )}
-
-            {activePost.imagen && (
-              <div style={{ borderRadius: '16px', overflow: 'hidden', marginBottom: '22px', maxHeight: '380px' }}>
-                <img
-                  src={activePost.imagen}
-                  alt={activePost.titulo}
-                  style={{ width: '100%', maxHeight: '380px', objectFit: 'cover', display: 'block' }}
-                />
-              </div>
-            )}
-
-            <div
-              className="editorial-body"
-              style={{ fontSize: '1rem', lineHeight: 1.8, color: 'var(--text-secondary)', marginBottom: '24px' }}
-              dangerouslySetInnerHTML={{
-                __html: formatParagraphsToHtml(activePost.contenido || activePost.excerpt),
-              }}
-            />
-
-            {/* Additional Gallery Images if uploaded */}
-            {activePost.galeria && activePost.galeria.length > 0 && (
-              <div style={{ marginTop: '20px', marginBottom: '24px' }}>
-                <h4 style={{ fontSize: '0.95rem', marginBottom: '12px', color: 'var(--text-primary)' }}>
-                  📸 Galería de Imágenes ({activePost.galeria.length})
-                </h4>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '12px',
-                  }}
-                >
-                  {activePost.galeria.map((imgUrl, i) => (
-                    <img
-                      key={i}
-                      src={imgUrl}
-                      alt={`${activePost.titulo} - imagen ${i + 1}`}
-                      style={{
-                        width: '100%',
-                        height: '200px',
-                        objectFit: 'cover',
-                        borderRadius: '12px',
-                        border: '1px solid var(--glass-border)',
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '12px',
-                paddingTop: '18px',
-                borderTop: '1px solid var(--glass-border)',
-              }}
-            >
-              <button
-                className="btn-secondary"
-                style={{ padding: '9px 16px', fontSize: '0.82rem' }}
-                onClick={() => handleShare(activePost)}
-              >
-                <Share2 size={14} /> Compartir Reflexión
-              </button>
-
-              <button
-                className="btn-primary"
-                style={{ padding: '9px 20px', fontSize: '0.82rem' }}
-                onClick={() => setActivePost(null)}
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
+        <BlogReaderModal
+          post={activePost}
+          lang={lang}
+          tr={tr}
+          onClose={() => setActivePost(null)}
+          onShare={handleShare}
+        />
       )}
     </div>
   );

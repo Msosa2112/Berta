@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Send, MessageSquare, BookOpen, Play, Pause, ChevronRight, PenTool } from 'lucide-react';
 import { InteractiveHoverButton } from './InteractiveHoverButton';
+import { useLanguage } from '../utils/i18n.jsx';
 
 const ConectaView = ({ profileSettings, triggerToast }) => {
+  const { tr } = useLanguage();
   // Contact Form State
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: 'general', message: '' });
   
@@ -25,7 +27,7 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
         setAudioProgress(p => {
           if (p >= 105) {
             setIsPlayingAudio(false);
-            triggerToast('Respuesta finalizada');
+            triggerToast(tr('Respuesta finalizada', 'Audio response finished'));
             return 0;
           }
           return p + 1;
@@ -44,32 +46,32 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
   const handleContactSubmit = (e) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.email || !contactForm.message) {
-      triggerToast('Por favor completa todos los campos obligatorios');
+      triggerToast(tr('Por favor completa todos los campos obligatorios', 'Please fill in all required fields'));
       return;
     }
-    triggerToast('¡Mensaje enviado con éxito!');
+    triggerToast(tr('¡Mensaje enviado con éxito!', 'Message sent successfully!'));
     setContactForm({ name: '', email: '', subject: 'general', message: '' });
   };
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
     if (!newsletterEmail) return;
-    triggerToast('¡Gracias por suscribirte al boletín!');
+    triggerToast(tr('¡Gracias por suscribirte al boletín!', 'Thank you for subscribing to our newsletter!'));
     setNewsletterEmail('');
   };
 
   const handleDameSubmit = (e) => {
     e.preventDefault();
     if (!dameContent.trim()) {
-      triggerToast('Escribe tu mensaje antes de enviar.');
+      triggerToast(tr('Escribe tu mensaje antes de enviar.', 'Write your message before sending.'));
       return;
     }
     
-    const submittedName = dameName.trim() || 'Anónimo';
+    const submittedName = dameName.trim() || tr('Anónimo', 'Anonymous');
     if (dameFormType === 'pregunta') {
-      triggerToast(`¡Pregunta de ${submittedName} enviada a Berta!`);
+      triggerToast(tr(`¡Pregunta de ${submittedName} enviada a Berta!`, `Question from ${submittedName} sent to Berta!`));
     } else {
-      triggerToast(`¡Historia de ${submittedName} compartida con la comunidad!`);
+      triggerToast(tr(`¡Historia de ${submittedName} compartida con la comunidad!`, `Story from ${submittedName} shared with the community!`));
     }
     
     // Save to localStorage
@@ -90,7 +92,7 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
   const toggleAudio = () => {
     setIsPlayingAudio(!isPlayingAudio);
     if (!isPlayingAudio) {
-      triggerToast('Reproduciendo audio explicativo');
+      triggerToast(tr('Reproduciendo audio explicativo', 'Playing voice reply'));
     }
   };
 
@@ -106,9 +108,14 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
     <div className="reveal">
       {/* ── Header ── */}
       <header style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '8px' }}>Conecta & Comunidad</h1>
+        <h1 style={{ fontSize: '2.2rem', marginBottom: '8px' }}>
+          {tr('Conecta & Comunidad', 'Connect & Community')}
+        </h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          Únete al debate, envía tus preguntas, comparte testimonios y ponte en contacto con Berta.
+          {tr(
+            'Únete al debate, envía tus preguntas, comparte testimonios y ponte en contacto con Berta.',
+            'Join the conversation, send your questions, share testimonies, and connect directly with Berta.'
+          )}
         </p>
       </header>
 
@@ -121,28 +128,45 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
             </div>
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Dame La Letra</h3>
-              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>En colaboración con Miguel Sosa</p>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                {tr('En colaboración con Miguel Sosa', 'In collaboration with Miguel Sosa')}
+              </p>
             </div>
           </div>
 
           <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '20px' }}>
-            ¡Participa activamente en nuestra comunidad! Envía tus preguntas para Berta o comparte historias inspiradoras. Cada semana seleccionamos una para responderla al aire en el podcast.
+            {tr(
+              '¡Participa activamente en nuestra comunidad! Envía tus preguntas para Berta o comparte historias inspiradoras. Cada semana seleccionamos una para responderla al aire en el podcast ConBERTAciones.',
+              'Be an active part of our community! Send your questions for Berta or share inspiring stories. Every week we select one to answer live on the ConBERTAciones podcast.'
+            )}
           </p>
 
           {/* Featured Q of the Week */}
           <div className="glass-card" style={{ padding: '16px 20px', background: 'rgba(218, 81, 246, 0.03)', borderLeft: '3px solid var(--accent-purple)', marginBottom: '24px', borderRadius: 'var(--radius-sm)' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Pregunta de la Semana</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-purple)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {tr('Pregunta de la Semana', 'Question of the Week')}
+            </span>
             <p style={{ fontStyle: 'italic', fontSize: '0.9rem', color: 'var(--text-primary)', margin: '6px 0', lineHeight: 1.45 }}>
-              "Berta, ¿cómo logras mantener viva la fe y la motivación cuando enfrentas la barrera del idioma en nuevos proyectos comunitarios?"
+              {tr(
+                '"Berta, ¿cómo logras mantener viva la fe y la motivación cuando enfrentas la barrera del idioma en nuevos proyectos comunitarios?"',
+                '"Berta, how do you keep faith and motivation alive when facing language barriers in new community projects?"'
+              )}
             </p>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>— Enviado por: Gabriela M., Louisville</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+              {tr('— Enviado por: Gabriela M., Louisville', '— Sent by: Gabriela M., Louisville')}
+            </div>
           </div>
 
           {/* Berta's Reply Voice Player */}
           <div className="glass-card" style={{ padding: '20px', background: 'rgba(139, 92, 246, 0.04)', borderColor: 'rgba(139, 92, 246, 0.15)' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-amber)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Respuesta de Berta</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-amber)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {tr('Respuesta de Berta', 'Berta’s Reply')}
+            </span>
             <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', margin: '6px 0 16px 0', lineHeight: 1.5 }}>
-              La barrera del idioma es real, pero el lenguaje del amor y del servicio es universal. Cuando trabajamos con fe, Dios abre los caminos y pone a las personas correctas en nuestro andar. ¡No temas dar el primer paso!
+              {tr(
+                'La barrera del idioma es real, pero el lenguaje del amor y del servicio es universal. Cuando trabajamos con fe, Dios abre los caminos y pone a las personas correctas en nuestro andar. ¡No temas dar el primer paso!',
+                'The language barrier is real, but the language of love and service is universal. When we work in faith, God opens doors and places the right people along our path. Don’t be afraid to take the first step!'
+              )}
             </p>
 
             {/* Audio Wave Visualizer Block */}
@@ -192,7 +216,7 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
                 style={{ padding: '6px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <MessageSquare size={12} />
-                <span>Enviar Pregunta</span>
+                <span>{tr('Enviar Pregunta', 'Send Question')}</span>
               </button>
               <button 
                 type="button" 
@@ -201,33 +225,39 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
                 style={{ padding: '6px 14px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <BookOpen size={12} />
-                <span>Compartir Historia</span>
+                <span>{tr('Compartir Historia', 'Share Story')}</span>
               </button>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Tu Nombre (Opcional)</label>
+              <label className="form-label">{tr('Tu Nombre (Opcional)', 'Your Name (Optional)')}</label>
               <input 
                 type="text" 
                 className="form-control" 
-                placeholder="Ingresa tu nombre..." 
+                placeholder={tr('Ingresa tu nombre...', 'Enter your name...')}
                 value={dameName}
                 onChange={e => setDameName(e.target.value)}
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">{dameFormType === 'pregunta' ? 'Tu Pregunta' : 'Tu Historia'}</label>
+              <label className="form-label">
+                {dameFormType === 'pregunta' ? tr('Tu Pregunta', 'Your Question') : tr('Tu Historia', 'Your Story')}
+              </label>
               <textarea 
                 className="form-control" 
-                placeholder={dameFormType === 'pregunta' ? 'Escribe aquí tu pregunta para Berta...' : 'Escribe aquí tu historia o testimonio de vida...'}
+                placeholder={
+                  dameFormType === 'pregunta'
+                    ? tr('Escribe aquí tu pregunta para Berta...', 'Write your question for Berta here...')
+                    : tr('Escribe aquí tu historia o testimonio de vida...', 'Write your story or life testimony here...')
+                }
                 value={dameContent}
                 onChange={e => setDameContent(e.target.value)}
               />
             </div>
 
             <InteractiveHoverButton type="submit" style={{ width: '100%' }}>
-              Enviar a la Comunidad
+              {tr('Enviar a la Comunidad', 'Send to the Community')}
             </InteractiveHoverButton>
           </form>
         </div>
@@ -235,7 +265,9 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
 
       {/* ── Redes Sociales ── */}
       <section style={{ marginBottom: '40px' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '16px' }}>Redes Sociales</h2>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '16px' }}>
+          {tr('Redes Sociales', 'Social Media')}
+        </h2>
         <div className="social-links-grid">
           {/* FB */}
           <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="social-link-btn" title="Facebook">
@@ -261,24 +293,26 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
         <div className="glass-card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' }}>
             <Mail size={18} color="var(--accent-purple)" />
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Envíanos un Mensaje</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+              {tr('Envíanos un Mensaje', 'Send Us a Message')}
+            </h3>
           </div>
 
           <form onSubmit={handleContactSubmit}>
             <div className="form-group">
-              <label className="form-label">Nombre Completo *</label>
+              <label className="form-label">{tr('Nombre Completo *', 'Full Name *')}</label>
               <input 
                 type="text" 
                 required 
                 className="form-control" 
-                placeholder="Ingresa tu nombre..." 
+                placeholder={tr('Ingresa tu nombre...', 'Enter your name...')}
                 value={contactForm.name}
                 onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
               />
             </div>
             
             <div className="form-group">
-              <label className="form-label">Correo Electrónico *</label>
+              <label className="form-label">{tr('Correo Electrónico *', 'Email Address *')}</label>
               <input 
                 type="email" 
                 required 
@@ -290,34 +324,40 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Asunto del Mensaje *</label>
+              <label className="form-label">{tr('Asunto del Mensaje *', 'Subject *')}</label>
               <select 
                 className="form-control" 
                 value={contactForm.subject}
                 onChange={e => setContactForm({ ...contactForm, subject: e.target.value })}
                 style={{ background: 'var(--bg-space)', color: 'var(--text-primary)' }}
               >
-                <option value="general">Consulta General</option>
-                <option value="booking_educativa">Agendar Charla Educativa (Estudiantes y educación de hijos)</option>
-                <option value="booking_inspiracional">Agendar Charla Inspiracional (Grupos de damas de iglesia / Grupos de fe)</option>
-                <option value="booking_empresarial">Agendar Charla para Compañías (Mensaje alentador para empleados)</option>
-                <option value="dame_letra">Dame La Letra (Pregunta/Historia)</option>
+                <option value="general">{tr('Consulta General', 'General Inquiry')}</option>
+                <option value="booking_educativa">
+                  {tr('Agendar Charla Educativa (Estudiantes y educación de hijos)', 'Book Educational Talk (Students & parenting)')}
+                </option>
+                <option value="booking_inspiracional">
+                  {tr('Agendar Charla Inspiracional (Grupos de damas de iglesia / Grupos de fe)', 'Book Inspirational Talk (Church women’s / Faith groups)')}
+                </option>
+                <option value="booking_empresarial">
+                  {tr('Agendar Charla para Compañías (Mensaje alentador para empleados)', 'Book Corporate Talk (Encouraging message for employees)')}
+                </option>
+                <option value="dame_letra">{tr('Dame La Letra (Pregunta/Historia)', 'Dame La Letra (Question/Story)')}</option>
               </select>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Mensaje *</label>
+              <label className="form-label">{tr('Mensaje *', 'Message *')}</label>
               <textarea 
                 required 
                 className="form-control" 
-                placeholder="Escribe tu consulta aquí..."
+                placeholder={tr('Escribe tu consulta aquí...', 'Write your message here...')}
                 value={contactForm.message}
                 onChange={e => setContactForm({ ...contactForm, message: e.target.value })}
               />
             </div>
 
             <InteractiveHoverButton type="submit" style={{ width: '100%' }}>
-              Enviar Mensaje
+              {tr('Enviar Mensaje', 'Send Message')}
             </InteractiveHoverButton>
           </form>
         </div>
@@ -326,9 +366,14 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
       {/* ── Newsletter Subscribe ── */}
       <section style={{ marginBottom: '24px' }}>
         <div className="glass-card glow-purple" style={{ padding: '24px' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '6px' }}>Suscripción al Boletín</h3>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '6px' }}>
+            {tr('Suscripción al Boletín', 'Newsletter Subscription')}
+          </h3>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '20px' }}>
-            Recibe notificaciones en tu correo cada vez que publiquemos un nuevo episodio de ConBERTAciones o una reflexión bilingüe.
+            {tr(
+              'Recibe notificaciones en tu correo cada vez que publiquemos un nuevo episodio de ConBERTAciones o una reflexión bilingüe.',
+              'Receive email notifications whenever we publish a new episode of ConBERTAciones or a bilingual reflection.'
+            )}
           </p>
           
           <form onSubmit={handleNewsletterSubmit} style={{ display: 'flex', gap: '10px', flexDirection: 'column', smDirection: 'row' }} className="responsive-flex">
@@ -336,13 +381,13 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
               type="email" 
               required 
               className="form-control" 
-              placeholder="Tu dirección de correo..." 
+              placeholder={tr('Tu dirección de correo...', 'Your email address...')}
               value={newsletterEmail}
               onChange={e => setNewsletterEmail(e.target.value)}
               style={{ flex: 1 }}
             />
             <InteractiveHoverButton type="submit">
-              Suscribirse
+              {tr('Suscribirse', 'Subscribe')}
             </InteractiveHoverButton>
           </form>
         </div>

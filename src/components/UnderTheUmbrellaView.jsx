@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, ArrowUpRight, Play, Search, RefreshCw, Mic, Clock, Calendar } from 'lucide-react';
 import { InteractiveHoverButton } from './InteractiveHoverButton';
+import { useLanguage } from '../utils/i18n.jsx';
 
 const stripHtml = (html) => {
   if (!html) return '';
@@ -13,17 +14,17 @@ const SpotifyIcon = ({ size = 14 }) => (
   </svg>
 );
 
-const BlogCard = ({ reflection, activeTab, onClick, onPlayAudio }) => {
-  const showEnPrimary = activeTab === 'en' && reflection.titleEn;
+const BlogCard = ({ reflection, activeTab, globalLang, tr, onClick, onPlayAudio }) => {
+  const showEnPrimary = (activeTab === 'en' || (activeTab === 'all' && globalLang === 'en')) && reflection.titleEn;
   const title = showEnPrimary
     ? reflection.titleEn
-    : (reflection.titleEs || reflection.titleEn || 'Sin título');
+    : (reflection.titleEs || reflection.titleEn || tr('Sin título', 'Untitled'));
   const secondaryTitle = showEnPrimary ? reflection.titleEs : reflection.titleEn;
   const rawContent = showEnPrimary
     ? (reflection.contentEn || reflection.contentEs || '')
     : (reflection.contentEs || reflection.contentEn || '');
   const summary = stripHtml(rawContent).substring(0, 125) + '...';
-  const lang = reflection.titleEs && reflection.titleEn ? 'Bilingüe (ES / EN)' : reflection.titleEs ? 'Español' : 'English';
+  const langLabel = reflection.titleEs && reflection.titleEn ? tr('Bilingüe (ES / EN)', 'Bilingual (ES / EN)') : reflection.titleEs ? 'Español' : 'English';
   const duration = showEnPrimary ? (reflection.durationEn || reflection.durationEs) : (reflection.durationEs || reflection.durationEn);
   const spotifyUrl = showEnPrimary ? (reflection.spotifyUrlEn || reflection.spotifyUrlEs) : (reflection.spotifyUrlEs || reflection.spotifyUrlEn);
 
@@ -41,7 +42,7 @@ const BlogCard = ({ reflection, activeTab, onClick, onPlayAudio }) => {
           className="blog-card-img"
         />
         <span className="news-card-badge" style={{ background: 'rgba(121, 35, 89, 0.85)', color: '#fff', top: '12px', left: '12px', backdropFilter: 'blur(6px)' }}>
-          ☂️ Reflexión · {lang}
+          ☂️ {tr('Reflexión', 'Reflection')} · {langLabel}
         </span>
         {duration && (
           <span style={{
@@ -72,7 +73,7 @@ const BlogCard = ({ reflection, activeTab, onClick, onPlayAudio }) => {
           <h4 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px', lineHeight: 1.35 }}>{title}</h4>
           {secondaryTitle && activeTab === 'all' && (
             <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--accent-terracotta)', marginBottom: '8px' }}>
-              EN: {secondaryTitle}
+              {showEnPrimary ? `ES: ${secondaryTitle}` : `EN: ${secondaryTitle}`}
             </div>
           )}
           <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '14px' }}>{summary}</p>
@@ -118,7 +119,7 @@ const BlogCard = ({ reflection, activeTab, onClick, onPlayAudio }) => {
                   textDecoration: 'none',
                   marginLeft: 'auto',
                 }}
-                title="Abrir reflexión en Spotify"
+                title={tr('Abrir reflexión en Spotify', 'Open reflection on Spotify')}
               >
                 <SpotifyIcon size={12} /> Spotify
               </a>
@@ -129,9 +130,13 @@ const BlogCard = ({ reflection, activeTab, onClick, onPlayAudio }) => {
             <img src="/berta.jpeg" alt="Berta" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-primary)' }}>Berta Weyenberg</div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-disabled)' }}>Under the Umbrella · Reflexión</div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-disabled)' }}>
+                Under the Umbrella · {tr('Reflexión', 'Reflection')}
+              </div>
             </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-purple)' }}>Leer →</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-purple)' }}>
+              {tr('Leer →', 'Read →')}
+            </span>
           </div>
         </div>
       </div>
@@ -139,11 +144,13 @@ const BlogCard = ({ reflection, activeTab, onClick, onPlayAudio }) => {
   );
 };
 
-const FeaturedCard = ({ reflection, onClick, onPlayAudio }) => {
-  const title = reflection.titleEs || reflection.titleEn || 'Sin título';
-  const rawContent = reflection.contentEs || reflection.contentEn || '';
+const FeaturedCard = ({ reflection, globalLang, tr, onClick, onPlayAudio }) => {
+  const showEn = globalLang === 'en' && reflection.titleEn;
+  const title = showEn ? reflection.titleEn : (reflection.titleEs || reflection.titleEn || tr('Sin título', 'Untitled'));
+  const secondary = showEn ? reflection.titleEs : reflection.titleEn;
+  const rawContent = showEn ? (reflection.contentEn || reflection.contentEs || '') : (reflection.contentEs || reflection.contentEn || '');
   const summary = stripHtml(rawContent).substring(0, 170) + '...';
-  const lang = reflection.titleEs && reflection.titleEn ? 'Bilingüe (ES / EN)' : reflection.titleEs ? 'Español' : 'English';
+  const langLabel = reflection.titleEs && reflection.titleEn ? tr('Bilingüe (ES / EN)', 'Bilingual (ES / EN)') : reflection.titleEs ? 'Español' : 'English';
 
   return (
     <div
@@ -175,7 +182,7 @@ const FeaturedCard = ({ reflection, onClick, onPlayAudio }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <span className="editorial-tag" style={{ background: 'var(--accent-purple)', color: '#fff', margin: 0 }}>
-              ☂️ Reflexión Más Reciente · {lang}
+              ☂️ {tr('Reflexión Más Reciente', 'Latest Reflection')} · {langLabel}
             </span>
             {reflection.releaseDate && (
               <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>
@@ -185,7 +192,7 @@ const FeaturedCard = ({ reflection, onClick, onPlayAudio }) => {
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '4px' }}>
             <h3 style={{ margin: 0, fontSize: '1.55rem', lineHeight: 1.2, color: '#fff', fontFamily: 'var(--font-serif)', fontWeight: 800 }}>
-              {title} {reflection.titleEn ? ` / ${reflection.titleEn}` : ''}
+              {title} {secondary ? ` / ${secondary}` : ''}
             </h3>
             <ArrowUpRight className="shrink-0 text-white" style={{ width: '22px', height: '22px', flexShrink: 0, color: '#fff' }} />
           </div>
@@ -197,13 +204,19 @@ const FeaturedCard = ({ reflection, onClick, onPlayAudio }) => {
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <img src="/berta.jpeg" alt="Berta" style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.3)' }} />
               <div>
-                <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>Escrito y narrado por</p>
+                <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>
+                  {tr('Escrito y narrado por', 'Written and narrated by')}
+                </p>
                 <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>Berta Weyenberg</p>
               </div>
             </div>
             <div>
-              <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>Sección</p>
-              <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>Under the Umbrella · Reflexiones</p>
+              <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.65)' }}>
+                {tr('Sección', 'Section')}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.78rem', fontWeight: 600, color: '#fff' }}>
+                Under the Umbrella · {tr('Reflexiones', 'Reflections')}
+              </p>
             </div>
           </div>
 
@@ -264,6 +277,7 @@ const UnderTheUmbrellaView = ({
   onSyncSpotify,
   isSyncingSpotify,
 }) => {
+  const { lang, tr } = useLanguage();
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [searchQuery, setSearchQuery] = useState('');
@@ -295,11 +309,16 @@ const UnderTheUmbrellaView = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <span className="editorial-tag" style={{ background: 'rgba(218, 81, 246, 0.14)', color: 'var(--accent-terracotta)', marginBottom: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-              ☂️ Under the Umbrella (Bajo la Sombrilla) · Reflexiones Bilingües
+              ☂️ {tr('Under the Umbrella (Bajo la Sombrilla) · Reflexiones Bilingües', 'Under the Umbrella (Bajo la Sombrilla) · Bilingual Reflections')}
             </span>
-            <h1 style={{ fontSize: '2.35rem', marginTop: '4px', marginBottom: '8px' }}>Under the Umbrella: Reflexiones</h1>
+            <h1 style={{ fontSize: '2.35rem', marginTop: '4px', marginBottom: '8px' }}>
+              {tr('Under the Umbrella: Reflexiones', 'Under the Umbrella: Reflections')}
+            </h1>
             <p style={{ color: 'var(--text-muted)', maxWidth: '640px', margin: 0 }}>
-              Cápsulas y reflexiones semanales de Berta Weyenberg sobre motivación, paz y fe en Español e Inglés — disponibles para leer y escuchar en audio desde Spotify for Creators.
+              {tr(
+                'Cápsulas y reflexiones semanales de Berta Weyenberg sobre motivación, paz y fe en Español e Inglés — disponibles para leer y escuchar en audio desde Spotify for Creators.',
+                'Weekly capsules and reflections by Berta Weyenberg on motivation, peace, and faith in Spanish and English — available to read and listen to via Spotify for Creators.'
+              )}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -315,10 +334,10 @@ const UnderTheUmbrellaView = ({
                 disabled={isSyncingSpotify}
                 className="btn-secondary"
                 style={{ height: '40px', padding: '0 14px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
-                title="Sincronizar reflexiones con Spotify"
+                title={tr('Sincronizar reflexiones con Spotify', 'Sync reflections with Spotify')}
               >
                 <RefreshCw size={14} style={{ animation: isSyncingSpotify ? 'spin 1s linear infinite' : 'none' }} />
-                <span>{isSyncingSpotify ? 'Sincronizando...' : 'Actualizar'}</span>
+                <span>{isSyncingSpotify ? tr('Sincronizando...', 'Syncing...') : tr('Actualizar', 'Refresh')}</span>
               </button>
             )}
           </div>
@@ -339,7 +358,15 @@ const UnderTheUmbrellaView = ({
           }}
         >
           <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
-            <strong>☂️ Under the Umbrella</strong> reúne las <strong>reflexiones cortas bilingües ({reflections.length} reflexiones)</strong>. ¿Buscas las entrevistas largas con invitados?
+            {lang === 'es' ? (
+              <>
+                <strong>☂️ Under the Umbrella</strong> reúne las <strong>reflexiones cortas bilingües ({reflections.length} reflexiones)</strong>. ¿Buscas las entrevistas largas con invitados?
+              </>
+            ) : (
+              <>
+                <strong>☂️ Under the Umbrella</strong> brings together <strong>short bilingual reflections ({reflections.length} reflections)</strong>. Looking for full-length guest interviews?
+              </>
+            )}
           </div>
           {onNavigate && (
             <button
@@ -347,7 +374,7 @@ const UnderTheUmbrellaView = ({
               className="category-pill active"
               style={{ margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', padding: '6px 14px' }}
             >
-              <Mic size={13} /> Ir a ConBERTAciones (Entrevistas)
+              <Mic size={13} /> {tr('Ir a ConBERTAciones (Entrevistas)', 'Go to ConBERTAciones (Interviews)')}
             </button>
           )}
         </div>
@@ -359,6 +386,8 @@ const UnderTheUmbrellaView = ({
           <div className="hide-on-mobile">
             <FeaturedCard
               reflection={featuredReflection}
+              globalLang={lang}
+              tr={tr}
               onClick={() => onOpenReflection(featuredReflection)}
               onPlayAudio={onPlayReflectionAudio}
             />
@@ -367,6 +396,8 @@ const UnderTheUmbrellaView = ({
             <BlogCard
               reflection={featuredReflection}
               activeTab={activeTab}
+              globalLang={lang}
+              tr={tr}
               onClick={() => onOpenReflection(featuredReflection)}
               onPlayAudio={onPlayReflectionAudio}
             />
@@ -379,7 +410,7 @@ const UnderTheUmbrellaView = ({
         <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div className="category-pills" style={{ marginBottom: 0, display: 'flex', gap: '8px', border: 'none', padding: 0 }}>
             {[
-              { id: 'all', label: `Todas (${reflections.length})` },
+              { id: 'all', label: tr(`Todas (${reflections.length})`, `All (${reflections.length})`) },
               { id: 'es', label: 'Español (ES)' },
               { id: 'en', label: 'English (EN)' }
             ].map(tab => (
@@ -411,7 +442,7 @@ const UnderTheUmbrellaView = ({
               <Search size={15} color="var(--text-muted)" />
               <input
                 type="text"
-                placeholder="Buscar reflexión..."
+                placeholder={tr('Buscar reflexión...', 'Search reflection...')}
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ background: 'none', border: 'none', color: 'var(--text-primary)', outline: 'none', fontSize: '0.84rem', width: '100%' }}
@@ -419,7 +450,7 @@ const UnderTheUmbrellaView = ({
             </div>
 
             <select
-              aria-label="Ordenar por"
+              aria-label={tr('Ordenar por', 'Sort by')}
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="form-control"
@@ -434,8 +465,8 @@ const UnderTheUmbrellaView = ({
                 width: 'auto',
               }}
             >
-              <option value="recent">Más recientes</option>
-              <option value="oldest">Más antiguas</option>
+              <option value="recent">{tr('Más recientes', 'Most recent')}</option>
+              <option value="oldest">{tr('Más antiguas', 'Oldest first')}</option>
             </select>
           </div>
         </div>
@@ -445,7 +476,7 @@ const UnderTheUmbrellaView = ({
       <section style={{ marginBottom: '40px' }}>
         {sortedReflections.length === 0 ? (
           <div className="glass-card" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>
-            No se encontraron reflexiones con ese criterio.
+            {tr('No se encontraron reflexiones con ese criterio.', 'No reflections found matching that criteria.')}
           </div>
         ) : (
           <div className="directory-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))' }}>
@@ -454,6 +485,8 @@ const UnderTheUmbrellaView = ({
                 key={ref.id} 
                 reflection={ref} 
                 activeTab={activeTab}
+                globalLang={lang}
+                tr={tr}
                 onClick={() => onOpenReflection(ref)} 
                 onPlayAudio={onPlayReflectionAudio}
               />

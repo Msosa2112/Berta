@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Award, Calendar, Play, Heart, Users, Star, BookOpen, Briefcase, Sparkles, CheckCircle2, X } from 'lucide-react';
 import { InteractiveHoverButton } from './InteractiveHoverButton';
+import { useLanguage } from '../utils/i18n.jsx';
 
 const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
+  const { tr } = useLanguage();
   const [selectedBookingType, setSelectedBookingType] = useState(null);
   const [bookingForm, setBookingForm] = useState({
     name: '',
@@ -17,55 +19,118 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
   const speakingServices = [
     {
       id: 'educativa',
-      badge: 'Educación & Familia',
-      title: 'Charlas Educativas: Estudiantes y Educación de Hijos',
+      badge: tr('Educación & Familia', 'Education & Family'),
+      title: tr(
+        'Charlas Educativas: Estudiantes y Educación de Hijos',
+        'Educational Talks: Student Education & Parenting'
+      ),
       icon: <BookOpen size={22} />,
-      audience: 'Escuelas, padres de familia, talleres educativos y asociaciones estudiantiles',
-      desc: 'Orientación cercana y práctica referente a la educación de los estudiantes, el éxito académico y herramientas para apoyar a los padres en la crianza y formación integral de sus hijos.',
+      audience: tr(
+        'Escuelas, padres de familia, talleres educativos y asociaciones estudiantiles',
+        'Schools, parents, educational workshops, and student associations'
+      ),
+      desc: tr(
+        'Orientación cercana y práctica referente a la educación de los estudiantes, el éxito académico y herramientas para apoyar a los padres en la crianza y formación integral de sus hijos.',
+        'Warm, practical guidance regarding student education, academic success, and tools to support parents in raising and nurturing their children.'
+      ),
       highlights: [
-        'Apoyo en la educación y desarrollo de los estudiantes',
-        'Guía práctica para padres sobre la educación de los hijos',
-        'Puentes entre la familia, la escuela y el futuro bilingüe',
+        tr('Apoyo en la educación y desarrollo de los estudiantes', 'Support in student education and academic growth'),
+        tr('Guía práctica para padres sobre la educación de los hijos', 'Practical guidance for parents on raising and educating their children'),
+        tr('Puentes entre la familia, la escuela y el futuro bilingüe', 'Building bridges between family, school, and a bilingual future'),
       ],
     },
     {
       id: 'inspiracional',
-      badge: 'Iglesias & Grupos de Fe',
-      title: 'Charlas Inspiracionales para Grupos de Damas y Grupos de Fe',
+      badge: tr('Iglesias & Grupos de Fe', 'Churches & Faith Groups'),
+      title: tr(
+        'Charlas Inspiracionales para Grupos de Damas y Grupos de Fe',
+        'Inspirational Talks for Women’s Ministries & Faith Groups'
+      ),
       icon: <Heart size={22} />,
-      audience: 'Grupos de damas de iglesia, ministerios, retiros y comunidades de fe',
-      desc: 'Mensajes cálidos y edificantes pensados para grupos de damas de iglesia o grupos de fe que se interesen en temas diversos de crecimiento espiritual, propósito, familia y resiliencia.',
+      audience: tr(
+        'Grupos de damas de iglesia, ministerios, retiros y comunidades de fe',
+        'Church women’s groups, ministries, retreats, and faith communities'
+      ),
+      desc: tr(
+        'Mensajes cálidos y edificantes pensados para grupos de damas de iglesia o grupos de fe que se interesen en temas diversos de crecimiento espiritual, propósito, familia y resiliencia.',
+        'Warm, uplifting messages crafted for church women’s groups or faith groups interested in diverse topics of spiritual growth, purpose, family, and resilience.'
+      ),
       highlights: [
-        'Encuentros, congresos y desayunos de grupos de damas',
-        'Grupos de fe interesados en reflexiones sobre temas diversos',
-        'Testimonios vivos de fe práctica, paz y esperanza',
+        tr('Encuentros, congresos y desayunos de grupos de damas', 'Conferences, retreats, and women’s ministry gatherings'),
+        tr('Grupos de fe interesados en reflexiones sobre temas diversos', 'Faith groups interested in reflections on diverse life topics'),
+        tr('Testimonios vivos de fe práctica, paz y esperanza', 'Living testimonies of practical faith, peace, and hope'),
       ],
     },
     {
       id: 'empresarial',
-      badge: 'Empresas & Equipos',
-      title: 'Mensajes de Inspiración y Aliento para Compañías y Empleados',
+      badge: tr('Empresas & Equipos', 'Companies & Teams'),
+      title: tr(
+        'Mensajes de Inspiración y Aliento para Compañías y Empleados',
+        'Messages of Inspiration & Encouragement for Companies & Employees'
+      ),
       icon: <Briefcase size={22} />,
-      audience: 'Dueños de compañías, líderes de negocios y equipos de trabajo',
-      desc: 'Dirigido a cualquier dueño de compañía que desee regalarle a sus empleados un mensaje de inspiración y aliento que renueve el ánimo, el compromiso y el bienestar humano dentro del equipo.',
+      audience: tr(
+        'Dueños de compañías, líderes de negocios y equipos de trabajo',
+        'Company owners, business leaders, and corporate teams'
+      ),
+      desc: tr(
+        'Dirigido a cualquier dueño de compañía que desee regalarle a sus empleados un mensaje de inspiración y aliento que renueve el ánimo, el compromiso y el bienestar humano dentro del equipo.',
+        'Designed for any company owner who wants to give their employees an inspiring, encouraging message that renews morale, commitment, and human well-being across the team.'
+      ),
       highlights: [
-        'Mensaje alentador y motivacional para empleados y colaboradores',
-        'Fortalecimiento del ánimo, propósito y cultura de equipo',
-        'Disponible en Español e Inglés para equipos diversos',
+        tr('Mensaje alentador y motivacional para empleados y colaboradores', 'Encouraging and motivational message for employees and staff'),
+        tr('Fortalecimiento del ánimo, propósito y cultura de equipo', 'Strengthening morale, purpose, and team culture'),
+        tr('Disponible en Español e Inglés para equipos diversos', 'Available in both Spanish and English for diverse teams'),
       ],
     },
   ];
 
   const clips = [
-    { id: 'c1', title: 'Charla Educativa: Familias y Estudiantes en JCPS', image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=500&q=80', duration: '5:40' },
-    { id: 'c2', title: 'Encuentro Inspiracional de Damas y Grupos de Fe', image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=500&q=80', duration: '3:15' },
-    { id: 'c3', title: 'Mensaje de Aliento e Inspiración para Equipos', image: 'https://images.unsplash.com/photo-1460889418202-14ebd4cc3b4b?w=500&q=80', duration: '8:50' }
+    {
+      id: 'c1',
+      title: tr('Charla Educativa: Familias y Estudiantes en JCPS', 'Educational Talk: Families & Students at JCPS'),
+      image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=500&q=80',
+      duration: '5:40',
+    },
+    {
+      id: 'c2',
+      title: tr('Encuentro Inspiracional de Damas y Grupos de Fe', 'Inspirational Gathering for Women & Faith Groups'),
+      image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=500&q=80',
+      duration: '3:15',
+    },
+    {
+      id: 'c3',
+      title: tr('Mensaje de Aliento e Inspiración para Equipos', 'Message of Encouragement & Inspiration for Teams'),
+      image: 'https://images.unsplash.com/photo-1460889418202-14ebd4cc3b4b?w=500&q=80',
+      duration: '8:50',
+    },
   ];
 
   const testimonials = [
-    { author: 'Ana Reyes, Directora Comunitaria', text: 'Sus charlas educativas para padres e hijos transforman la manera en que nuestras familias se involucran en la educación de los estudiantes.', stars: 5 },
-    { author: 'Ministerio de Damas, Louisville', text: 'Berta compartió con nuestro grupo de damas de la iglesia un mensaje inolvidable, lleno de sabiduría, calidez y fe práctica.', stars: 5 },
-    { author: 'Carlos Aguilera, Dueño de Empresa', text: 'Invitamos a Berta para dar un mensaje alentador a nuestros empleados y el impacto positivo en todo el equipo fue inmediato.', stars: 5 }
+    {
+      author: tr('Ana Reyes, Directora Comunitaria', 'Ana Reyes, Community Director'),
+      text: tr(
+        'Sus charlas educativas para padres e hijos transforman la manera en que nuestras familias se involucran en la educación de los estudiantes.',
+        'Her educational talks for parents and children transform how our families engage in student education.'
+      ),
+      stars: 5,
+    },
+    {
+      author: tr('Ministerio de Damas, Louisville', 'Women’s Ministry, Louisville'),
+      text: tr(
+        'Berta compartió con nuestro grupo de damas de la iglesia un mensaje inolvidable, lleno de sabiduría, calidez y fe práctica.',
+        'Berta shared an unforgettable message with our church women’s group, filled with wisdom, warmth, and practical faith.'
+      ),
+      stars: 5,
+    },
+    {
+      author: tr('Carlos Aguilera, Dueño de Empresa', 'Carlos Aguilera, Business Owner'),
+      text: tr(
+        'Invitamos a Berta para dar un mensaje alentador a nuestros empleados y el impacto positivo en todo el equipo fue inmediato.',
+        'We invited Berta to share an encouraging message with our employees and the positive impact across the entire team was immediate.'
+      ),
+      stars: 5,
+    },
   ];
 
   const openBookingModal = (typeId = 'educativa') => {
@@ -76,7 +141,7 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
   const handleBookingSubmit = (e) => {
     e.preventDefault();
     if (!bookingForm.name.trim() || !bookingForm.email.trim()) {
-      if (triggerToast) triggerToast('Por favor completa tu nombre y correo electrónico.');
+      if (triggerToast) triggerToast(tr('Por favor completa tu nombre y correo electrónico.', 'Please fill in your name and email address.'));
       return;
     }
 
@@ -99,7 +164,7 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
       message: '',
     });
     if (triggerToast) {
-      triggerToast('¡Solicitud de charla enviada! Berta se pondrá en contacto contigo pronto.');
+      triggerToast(tr('¡Solicitud de charla enviada! Berta se pondrá en contacto contigo pronto.', 'Speaking request sent! Berta will be in touch with you soon.'));
     }
   };
 
@@ -108,11 +173,16 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
       {/* ── Bio Speaker Header ── */}
       <header style={{ marginBottom: '28px' }}>
         <span className="editorial-tag" style={{ background: 'rgba(121, 35, 89, 0.14)', color: 'var(--accent-purple)', marginBottom: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <Sparkles size={13} /> Conferencista & Oradora Bilingüe
+          <Sparkles size={13} /> {tr('Conferencista & Oradora Bilingüe', 'Bilingual Keynote & Public Speaker')}
         </span>
-        <h1 style={{ fontSize: '2.2rem', marginBottom: '8px' }}>Agenda a Berta para tu Evento</h1>
+        <h1 style={{ fontSize: '2.2rem', marginBottom: '8px' }}>
+          {tr('Agenda a Berta para tu Evento', 'Book Berta for Your Event')}
+        </h1>
         <p style={{ color: 'var(--text-muted)', maxWidth: '680px' }}>
-          Charlas educativas para estudiantes y padres, mensajes inspiracionales para grupos de damas e iglesias, y conferencias de aliento para empresas y sus empleados.
+          {tr(
+            'Charlas educativas para estudiantes y padres, mensajes inspiracionales para grupos de damas e iglesias, y conferencias de aliento para empresas y sus empleados.',
+            'Educational talks for students and parents, inspirational messages for church women’s groups and faith communities, and encouraging talks for companies and their employees.'
+          )}
         </p>
       </header>
 
@@ -123,15 +193,19 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(121, 35, 89, 0.94) 0%, rgba(121, 35, 89, 0.35) 100%)' }} />
           <div style={{ position: 'absolute', bottom: '22px', left: '22px', right: '22px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <span className="editorial-tag" style={{ background: 'var(--accent-purple)', color: '#fff', marginBottom: '6px' }}>Educación · Fe · Liderazgo Empresarial</span>
-              <h3 style={{ fontSize: '1.5rem', color: '#fff', margin: 0 }}>Un mensaje con propósito para cada audiencia</h3>
+              <span className="editorial-tag" style={{ background: 'var(--accent-purple)', color: '#fff', marginBottom: '6px' }}>
+                {tr('Educación · Fe · Liderazgo Empresarial', 'Education · Faith · Corporate Leadership')}
+              </span>
+              <h3 style={{ fontSize: '1.5rem', color: '#fff', margin: 0 }}>
+                {tr('Un mensaje con propósito para cada audiencia', 'A purposeful message for every audience')}
+              </h3>
             </div>
             <button
               className="btn-primary"
               onClick={() => openBookingModal('educativa')}
               style={{ padding: '10px 20px', fontSize: '0.86rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
             >
-              <Calendar size={15} /> Agendar Fecha Ahora
+              <Calendar size={15} /> {tr('Agendar Fecha Ahora', 'Book a Date Now')}
             </button>
           </div>
         </div>
@@ -141,14 +215,19 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
       <section style={{ marginBottom: '36px' }}>
         <div className="glass-card bio-card" style={{ borderLeft: '4px solid var(--accent-purple)' }}>
           <p style={{ fontSize: '0.96rem', color: 'var(--text-secondary)', lineHeight: 1.65, margin: 0 }}>
-            <strong>¿Para qué tipo de eventos puedes agendar a Berta Weyenberg?</strong> Ya sea que busques fortalecer la <strong>educación de los estudiantes y la crianza de los hijos</strong>, compartir una palabra viva en <strong>grupos de damas de iglesia o grupos de fe</strong> sobre temas diversos, o seas <strong>dueño de una compañía</strong> que desea regalarle a sus empleados un <strong>mensaje de inspiración y aliento</strong>, Berta adapta cada conferencia con calidez, empatía y excelencia bilingüe.
+            {tr(
+              '¿Para qué tipo de eventos puedes agendar a Berta Weyenberg? Ya sea que busques fortalecer la educación de los estudiantes y la crianza de los hijos, compartir una palabra viva en grupos de damas de iglesia o grupos de fe sobre temas diversos, o seas dueño de una compañía que desea regalarle a sus empleados un mensaje de inspiración y aliento, Berta adapta cada conferencia con calidez, empatía y excelencia bilingüe.',
+              'What kind of events can you book Berta Weyenberg for? Whether you want to strengthen student education and parenting, share an uplifting word with church women’s groups or faith groups on diverse topics, or you are a company owner looking to give your employees an inspiring, encouraging message, Berta tailors every talk with warmth, empathy, and bilingual excellence.'
+            )}
           </p>
         </div>
       </section>
 
       {/* ── 3 Main Speaking Pillars ── */}
       <section style={{ marginBottom: '44px' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Modalidades de Charlas Disponibles</h2>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>
+          {tr('Modalidades de Charlas Disponibles', 'Available Speaking Topics & Formats')}
+        </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {speakingServices.map((srv) => (
             <div
@@ -178,7 +257,7 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
                 </div>
 
                 <InteractiveHoverButton onClick={() => openBookingModal(srv.id)} style={{ fontSize: '0.82rem' }}>
-                  Agendar esta charla
+                  {tr('Agendar esta charla', 'Book this talk')}
                 </InteractiveHoverButton>
               </div>
 
@@ -196,7 +275,7 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
               </div>
 
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                <strong>Dirigido a:</strong> {srv.audience}
+                <strong>{tr('Dirigido a:', 'Ideal for:')}</strong> {srv.audience}
               </div>
             </div>
           ))}
@@ -206,20 +285,28 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
       {/* Booking CTA Button */}
       <section style={{ marginBottom: '44px', textAlign: 'center' }}>
         <div className="glass-card glow-amber" style={{ padding: '28px 24px' }}>
-          <h3 style={{ fontSize: '1.35rem', marginBottom: '8px' }}>¿Listo para llevar un mensaje transformador a tu grupo o empresa?</h3>
+          <h3 style={{ fontSize: '1.35rem', marginBottom: '8px' }}>
+            {tr(
+              '¿Listo para llevar un mensaje transformador a tu grupo o empresa?',
+              'Ready to bring a transformative message to your group or company?'
+            )}
+          </h3>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '560px', margin: '0 auto 20px auto' }}>
-            Reserva una fecha para tu escuela, grupo de padres, grupo de damas de iglesia, comunidad de fe o equipo de empleados.
+            {tr(
+              'Reserva una fecha para tu escuela, grupo de padres, grupo de damas de iglesia, comunidad de fe o equipo de empleados.',
+              'Reserve a date for your school, parent group, church women’s ministry, faith community, or employee team.'
+            )}
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <InteractiveHoverButton onClick={() => openBookingModal('educativa')}>
-              Solicitar Fecha de Charla
+              {tr('Solicitar Fecha de Charla', 'Request a Speaking Date')}
             </InteractiveHoverButton>
             <button
               className="btn-secondary"
               onClick={() => onNavigate('conecta')}
               style={{ padding: '10px 20px', fontSize: '0.85rem', cursor: 'pointer' }}
             >
-              Ir a Formulario de Contacto
+              {tr('Ir a Formulario de Contacto', 'Go to Contact Form')}
             </button>
           </div>
         </div>
@@ -227,10 +314,12 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
 
       {/* Clips Gallery */}
       <section style={{ marginBottom: '44px' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Momentos y Conferencias</h2>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>
+          {tr('Momentos y Conferencias', 'Speaking Moments & Highlights')}
+        </h2>
         <div className="news-row-scroll">
           {clips.map((clip) => (
-            <div key={clip.id} className="glass-card glass-card-interactive news-card-horizontal" style={{ padding: 0 }} onClick={() => triggerToast(`Reproduciendo clip: ${clip.title}`)}>
+            <div key={clip.id} className="glass-card glass-card-interactive news-card-horizontal" style={{ padding: 0 }} onClick={() => triggerToast(`${tr('Reproduciendo clip:', 'Playing clip:')} ${clip.title}`)}>
               <div style={{ position: 'relative', height: '140px', backgroundImage: `url(${clip.image})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 'var(--radius-md) var(--radius-md) 0 0' }}>
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.9)', color: 'var(--bg-obsidian)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
@@ -251,7 +340,9 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
 
       {/* Testimonials */}
       <section style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>Lo que dicen quienes la han invitado</h2>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px' }}>
+          {tr('Lo que dicen quienes la han invitado', 'What Event Organizers Are Saying')}
+        </h2>
         <div className="bento-grid">
           {testimonials.map((test, idx) => (
             <div key={idx} className="glass-card testimonial-card bento-col-6 glow-amber">
@@ -298,8 +389,12 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
-                <span className="editorial-tag" style={{ marginBottom: '4px' }}>Solicitud de Invitación</span>
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0 }}>Agendar a Berta Weyenberg</h3>
+                <span className="editorial-tag" style={{ marginBottom: '4px' }}>
+                  {tr('Solicitud de Invitación', 'Speaking Invitation Request')}
+                </span>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0 }}>
+                  {tr('Agendar a Berta Weyenberg', 'Book Berta Weyenberg')}
+                </h3>
               </div>
               <button
                 onClick={() => setSelectedBookingType(null)}
@@ -311,37 +406,54 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
 
             <form onSubmit={handleBookingSubmit}>
               <div className="form-group">
-                <label className="form-label">Tipo de Charla *</label>
+                <label className="form-label">{tr('Tipo de Charla *', 'Type of Talk *')}</label>
                 <select
                   className="form-control"
                   value={bookingForm.type}
                   onChange={e => setBookingForm({ ...bookingForm, type: e.target.value })}
                   style={{ background: 'var(--bg-space)', color: 'var(--text-primary)' }}
                 >
-                  <option value="educativa">🎓 Charla Educativa (Educación de estudiantes y crianza de hijos)</option>
-                  <option value="inspiracional">✨ Charla Inspiracional (Grupos de damas de iglesia / Grupos de fe)</option>
-                  <option value="empresarial">💼 Charla para Compañías (Mensaje de inspiración y aliento para empleados)</option>
+                  <option value="educativa">
+                    {tr(
+                      '🎓 Charla Educativa (Educación de estudiantes y crianza de hijos)',
+                      '🎓 Educational Talk (Student education & parenting)'
+                    )}
+                  </option>
+                  <option value="inspiracional">
+                    {tr(
+                      '✨ Charla Inspiracional (Grupos de damas de iglesia / Grupos de fe)',
+                      '✨ Inspirational Talk (Church women’s groups / Faith groups)'
+                    )}
+                  </option>
+                  <option value="empresarial">
+                    {tr(
+                      '💼 Charla para Compañías (Mensaje de inspiración y aliento para empleados)',
+                      '💼 Corporate Talk (Inspiring & encouraging message for employees)'
+                    )}
+                  </option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Tu Nombre Completo *</label>
+                <label className="form-label">{tr('Tu Nombre Completo *', 'Your Full Name *')}</label>
                 <input
                   type="text"
                   required
                   className="form-control"
-                  placeholder="Ej. María González"
+                  placeholder={tr('Ej. María González', 'E.g. Maria Gonzalez')}
                   value={bookingForm.name}
                   onChange={e => setBookingForm({ ...bookingForm, name: e.target.value })}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Escuela, Iglesia, Grupo de Fe o Compañía</label>
+                <label className="form-label">
+                  {tr('Escuela, Iglesia, Grupo de Fe o Compañía', 'School, Church, Faith Group, or Company')}
+                </label>
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Nombre de tu institución, iglesia o empresa..."
+                  placeholder={tr('Nombre de tu institución, iglesia o empresa...', 'Name of your school, church, or company...')}
                   value={bookingForm.organization}
                   onChange={e => setBookingForm({ ...bookingForm, organization: e.target.value })}
                 />
@@ -349,7 +461,7 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
-                  <label className="form-label">Correo Electrónico *</label>
+                  <label className="form-label">{tr('Correo Electrónico *', 'Email Address *')}</label>
                   <input
                     type="email"
                     required
@@ -360,7 +472,7 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Fecha Tentativa</label>
+                  <label className="form-label">{tr('Fecha Tentativa', 'Tentative Date')}</label>
                   <input
                     type="date"
                     className="form-control"
@@ -371,10 +483,15 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Detalles del Evento o Tema de Interés</label>
+                <label className="form-label">
+                  {tr('Detalles del Evento o Tema de Interés', 'Event Details or Topic of Interest')}
+                </label>
                 <textarea
                   className="form-control"
-                  placeholder="Cuéntanos sobre tu audiencia (estudiantes/padres, grupo de damas/fe o empleados de tu compañía) y qué mensaje deseas compartir..."
+                  placeholder={tr(
+                    'Cuéntanos sobre tu audiencia (estudiantes/padres, grupo de damas/fe o empleados de tu compañía) y qué mensaje deseas compartir...',
+                    'Tell us about your audience (students/parents, women’s/faith group, or company employees) and the message you would like to share...'
+                  )}
                   value={bookingForm.message}
                   onChange={e => setBookingForm({ ...bookingForm, message: e.target.value })}
                 />
@@ -387,10 +504,10 @@ const PublicSpeakerView = ({ onNavigate, triggerToast }) => {
                   onClick={() => setSelectedBookingType(null)}
                   style={{ padding: '10px 16px', cursor: 'pointer' }}
                 >
-                  Cancelar
+                  {tr('Cancelar', 'Cancel')}
                 </button>
                 <InteractiveHoverButton type="submit">
-                  Confirmar Solicitud
+                  {tr('Confirmar Solicitud', 'Confirm Request')}
                 </InteractiveHoverButton>
               </div>
             </form>
