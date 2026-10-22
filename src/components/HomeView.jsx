@@ -1,26 +1,6 @@
 import React, { useState } from 'react';
-import { Play, BookOpen, ChevronRight, MapPin, Calendar, Newspaper, Clock, ArrowRight, Mic, Star, Award, Briefcase, Mail, ChevronDown } from 'lucide-react';
+import { Play, BookOpen, MapPin, Clock, ArrowRight, Mic, Award, Mail, ChevronDown, Calendar } from 'lucide-react';
 import { InteractiveHoverButton } from './InteractiveHoverButton';
-
-const CAT_COLORS = {
-  'Comunidad': { bg: 'rgba(139, 92, 246, 0.15)', text: '#a78bfa' },
-  'Educación':  { bg: 'rgba(59, 130, 246, 0.15)', text: '#60a5fa' },
-  'Salud':      { bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399' },
-  'Blog':       { bg: 'rgba(236, 72, 153, 0.15)', text: '#f472b6' },
-  'Cultura':    { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24' },
-};
-
-const TIPO_COLORS = {
-  'Cultural':   { bg: 'rgba(139, 92, 246, 0.15)', text: '#a78bfa' },
-  'Familia':    { bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399' },
-  'Educación':  { bg: 'rgba(59, 130, 246, 0.15)', text: '#60a5fa' },
-  'Negocios':   { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24' },
-};
-
-const formatDate = (dateStr) => {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('es-US', { month: 'short', day: 'numeric', year: 'numeric' });
-};
 
 const BentoGrid = ({ children }) => {
   return <div className="magic-bento-grid reveal">{children}</div>;
@@ -46,14 +26,17 @@ const BentoCard = ({ Icon, name, description, cta, className, background, childr
 };
 
 const HomeView = ({
-  episodes, reflections, noticias, eventos, negocios,
-  onPlay, onOpenPlaylist, onOpenArticle, onNavigate,
-  savedEpisodes, onToggleSave, triggerToast,
+  episodes,
+  reflections,
+  onPlay,
+  onOpenPlaylist,
+  onOpenReflection,
+  onPlayReflectionAudio,
+  onNavigate,
 }) => {
-  const featuredEp   = episodes[0];
-  const recentNews   = noticias.slice(0, 4);
-  const nextEvents   = eventos.slice(0, 3);
-  const featuredBiz  = negocios.filter(b => b.destacado).slice(0, 3);
+  const featuredEp = episodes[0];
+  const recentInterviews = episodes.slice(0, 3);
+  const recentReflections = reflections.slice(0, 4);
   const [bioExpanded, setBioExpanded] = useState(false);
 
   return (
@@ -62,7 +45,6 @@ const HomeView = ({
         {/* Card 1: Bio / Presentación (Span 12) */}
         <div className="magic-bento-card magic-bento-col-12" style={{ cursor: 'default', minHeight: 'auto' }}>
           <div className="bio-card-inner">
-            {/* Top row: avatar + name — tappable on mobile to toggle expand */}
             <div
               className="bio-section-inner bio-toggle-header"
               onClick={() => setBioExpanded(prev => !prev)}
@@ -76,42 +58,41 @@ const HomeView = ({
               <div className="bio-text-block">
                 <h2 className="bio-name">Berta Weyenberg</h2>
                 <div style={{ fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent-terracotta)', letterSpacing: '0.05em', margin: '4px 0 8px 0' }}>
-                  Host &amp; Líder Comunitaria
+                  Host de ConBERTAciones · Reflexiones &amp; Conferencista
                 </div>
                 <div style={{ display: 'flex', gap: '6px', fontSize: '0.78rem', color: 'var(--text-muted)', alignItems: 'center' }}>
                   <MapPin size={12} color="var(--accent-amber)" />
                   <span>Louisville, Kentucky</span>
                 </div>
               </div>
-              {/* Chevron icon — only visible on mobile */}
               <div className="bio-chevron" style={{ transform: bioExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', flexShrink: 0 }}>
                 <ChevronDown size={18} color="var(--text-muted)" />
               </div>
             </div>
 
-            {/* Collapsible body */}
             <div className={`bio-collapsible-body${bioExpanded ? ' bio-collapsible-open' : ''}`}>
               <p className="bio-description bio-description-full">
-                Originaria de Cuba, Berta Polo Weyenberg es educadora galardonada y figura central de la comunidad hispana en Kentucky. Como Coordinadora de Familias Multilingües en JCPS, su misión es conectar y empoderar a través de diálogos basados en la fe, la resiliencia y la educación.
+                Originaria de Cuba, Berta Polo Weyenberg es educadora galardonada y figura central de la comunidad hispana en Kentucky. A través de sus entrevistas en <strong>ConBERTAciones</strong> y sus reflexiones bilingües en <strong>Under the Umbrella (Bajo la Sombrilla)</strong>, comparte mensajes de fe, esperanza, educación y propósito.
               </p>
               <div className="bio-quote">
                 <strong style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <Mic size={16} color="var(--accent-terracotta)" />
-                  ¿Por qué ConBERTAciones?
+                  Dos espacios pensados para ti:
                 </strong>
                 <p style={{ marginTop: '4px', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                  Nace de la unión de <em>Berta</em> y <em>Conversaciones</em>. Es un espacio de encuentro para amplificar las voces latinas, compartir historias de fe y superación, y construir puentes de apoyo y visibilidad dentro de nuestra comunidad.
+                  <strong>🎙️ ConBERTAciones:</strong> nuestro espacio de entrevistas profundas y conversaciones con invitados especiales.<br />
+                  <strong>☂️ Under the Umbrella:</strong> cápsulas y reflexiones cortas en Español e Inglés para inspirar tu día a día.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Card 2: ConBERTAciones Podcast (Span 8) */}
+        {/* Card 2: ConBERTAciones · Entrevistas (Span 8) */}
         <BentoCard
           Icon={Mic}
           name="ConBERTAciones · Entrevistas"
-          description={featuredEp ? `Entrevistas y diálogos con invitados · Última: ${featuredEp.title.split('|')[0]}` : "Programa de entrevistas y conversaciones profundas con líderes de la comunidad."}
+          description={featuredEp ? `Entrevistas y diálogos con invitados · Última: ${featuredEp.title.split('|')[0]}` : "Programa de entrevistas y conversaciones profundas con invitados especiales."}
           cta="Ver todas las entrevistas"
           className="magic-bento-col-8 glow-purple"
           onClick={() => onNavigate('podcast')}
@@ -129,136 +110,164 @@ const HomeView = ({
                 borderRadius: 'var(--radius-md)',
                 maskImage: 'radial-gradient(circle, rgba(0,0,0,0.6) 0%, transparent 80%)',
                 WebkitMaskImage: 'radial-gradient(circle, rgba(0,0,0,0.6) 0%, transparent 80%)',
-                opacity: 0.5,
+                opacity: 0.45,
               }} />
             )
           }
         >
           {featuredEp && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px', marginBottom: '16px', zIndex: 10, pointerEvents: 'auto' }}>
-              <button className="btn-primary" style={{ padding: '8px 20px', fontSize: '0.82rem' }} onClick={(e) => { e.stopPropagation(); onPlay(featuredEp); }}>
-                <Play size={14} fill="currentColor" />
-                <span>Escuchar ({featuredEp.duration})</span>
-              </button>
-              <div className="wave-container">
-                <div className="wave-bar"></div>
-                <div className="wave-bar"></div>
-                <div className="wave-bar"></div>
-                <div className="wave-bar"></div>
-                <div className="wave-bar"></div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px', marginBottom: '16px', zIndex: 10, pointerEvents: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                <button className="btn-primary" style={{ padding: '8px 20px', fontSize: '0.82rem' }} onClick={(e) => { e.stopPropagation(); onPlay(featuredEp); }}>
+                  <Play size={14} fill="currentColor" />
+                  <span>Escuchar última entrevista ({featuredEp.duration})</span>
+                </button>
+                <div className="wave-container">
+                  <div className="wave-bar"></div>
+                  <div className="wave-bar"></div>
+                  <div className="wave-bar"></div>
+                  <div className="wave-bar"></div>
+                  <div className="wave-bar"></div>
+                </div>
+              </div>
+
+              {/* Mini list of recent interviews */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+                {recentInterviews.slice(0, 3).map((ep) => (
+                  <div
+                    key={ep.id}
+                    className="glass-card"
+                    style={{
+                      padding: '8px 12px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '10px',
+                      border: '1px solid var(--glass-border)',
+                      background: 'rgba(255,255,255,0.45)',
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlay(ep);
+                    }}
+                  >
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        🎙️ {ep.title}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        {ep.host && ep.host !== 'Berta Weyenberg' ? `Invitado(a): ${ep.host} · ` : ''}{ep.duration}
+                      </div>
+                    </div>
+                    <button
+                      className="biz-btn-icon"
+                      style={{ width: '30px', height: '30px', flexShrink: 0 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlay(ep);
+                      }}
+                      title="Reproducir entrevista"
+                    >
+                      <Play size={12} fill="currentColor" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </BentoCard>
 
-        {/* Card 3: Bajo la Sombrilla / Reflections (Span 4) */}
+        {/* Card 3: Under the Umbrella / Reflections (Span 4) */}
         <BentoCard
           Icon={BookOpen}
           name="Under the Umbrella · Reflexiones"
-          description={`Reflexiones cortas bilingües (${reflections.length} cápsulas ES/EN) en lectura y audio para tu día a día.`}
-          cta="Explorar reflexiones"
+          description={`Cápsulas y reflexiones cortas bilingües (${reflections.length} episodios ES/EN) en lectura y audio para tu día a día.`}
+          cta="Ver todas las reflexiones"
           className="magic-bento-col-4 glow-amber"
           onClick={() => onNavigate('umbrella')}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', marginBottom: '16px', pointerEvents: 'auto', zIndex: 10 }}>
             <InteractiveHoverButton style={{ width: '100%', justifyContent: 'flex-start' }} onClick={(e) => { e.stopPropagation(); onOpenPlaylist('es'); }}>
-              ☂️ Reflexiones en Español (ES)
+              ☂️ Playlist en Español (ES)
             </InteractiveHoverButton>
             <InteractiveHoverButton style={{ width: '100%', justifyContent: 'flex-start' }} onClick={(e) => { e.stopPropagation(); onOpenPlaylist('en'); }}>
-              ☂️ Reflections in English (EN)
+              ☂️ Playlist in English (EN)
             </InteractiveHoverButton>
           </div>
         </BentoCard>
 
-        {/* Card 4: Noticias y Blog (Span 8) */}
+        {/* Card 4: Últimas Reflexiones Bilingües (Span 8) */}
         <BentoCard
-          Icon={Newspaper}
-          name="Noticias y Blog"
-          description="Mantente al día con lo último sobre educación, salud y cultura de nuestra comunidad."
-          cta="Ver Blog completo"
+          Icon={BookOpen}
+          name="Últimas Reflexiones (Bajo la Sombrilla)"
+          description="Lee o escucha las reflexiones más recientes publicadas en Español e Inglés."
+          cta="Explorar archivo completo de reflexiones"
           className="magic-bento-col-8"
-          onClick={() => onNavigate('noticias')}
+          onClick={() => onNavigate('umbrella')}
         >
-          <div style={{ display: 'flex', gap: '14px', marginTop: '8px', marginBottom: '16px', overflowX: 'auto', pointerEvents: 'auto', width: '100%', zIndex: 10 }} className="no-scrollbar">
-            {recentNews.slice(0, 2).map((n) => {
-              const cat = CAT_COLORS[n.categoria] || { bg: 'rgba(255,255,255,0.08)', text: 'var(--text-muted)' };
-              return (
-                <div key={n.id} className="glass-card news-card-horizontal" style={{ width: '220px', padding: 0, minHeight: 'auto', border: '1px solid rgba(255,255,255,0.04)' }} onClick={(e) => { e.stopPropagation(); onOpenArticle(n); }}>
-                  <div style={{ height: '90px', backgroundImage: `url(${n.imagen})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: 'var(--radius-md) var(--radius-md) 0 0', position: 'relative' }}>
-                    <span className="news-card-badge" style={{ background: cat.bg, color: cat.text, top: '8px', left: '8px', padding: '2px 8px', fontSize: '0.62rem' }}>
-                      {n.categoria}
-                    </span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px', marginTop: '10px', marginBottom: '16px', pointerEvents: 'auto', width: '100%', zIndex: 10 }}>
+            {recentReflections.map((ref) => (
+              <div
+                key={ref.id}
+                className="glass-card glass-card-interactive"
+                style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '8px', border: '1px solid var(--glass-border)' }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onOpenReflection) onOpenReflection(ref);
+                  else onNavigate('umbrella');
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--accent-purple)' }}>☂️ ES / EN</span>
+                    {ref.releaseDate && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <Calendar size={10} /> {ref.releaseDate}
+                      </span>
+                    )}
                   </div>
-                  <div style={{ padding: '10px' }}>
-                    <h4 style={{ fontSize: '0.82rem', fontWeight: 600, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '32px', color: 'var(--text-primary)', margin: 0 }}>
-                      {n.titulo}
-                    </h4>
-                  </div>
+                  <h4 style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 2px 0' }}>
+                    {ref.titleEs || ref.titleEn}
+                  </h4>
+                  {ref.titleEn && ref.titleEs && (
+                    <div style={{ fontSize: '0.74rem', color: 'var(--accent-terracotta)', fontWeight: 600 }}>
+                      {ref.titleEn}
+                    </div>
+                  )}
                 </div>
-              );
-            })}
+
+                <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }} onClick={e => e.stopPropagation()}>
+                  {ref.audioEs && (
+                    <button
+                      className="btn-secondary"
+                      style={{ padding: '4px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                      onClick={() => onPlayReflectionAudio && onPlayReflectionAudio(ref, 'es')}
+                    >
+                      <Play size={10} fill="currentColor" /> ES ({ref.durationEs})
+                    </button>
+                  )}
+                  {ref.audioEn && (
+                    <button
+                      className="btn-secondary"
+                      style={{ padding: '4px 8px', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                      onClick={() => onPlayReflectionAudio && onPlayReflectionAudio(ref, 'en')}
+                    >
+                      <Play size={10} fill="currentColor" /> EN ({ref.durationEn})
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </BentoCard>
 
-        {/* Card 5: Directorio de Negocios (Span 4) */}
-        <BentoCard
-          Icon={Briefcase}
-          name="Directorio Comercial"
-          description="Encuentra y apoya negocios y servicios hispanos locales en Louisville."
-          cta="Explorar directorio"
-          className="magic-bento-col-4 glow-amber"
-          onClick={() => onNavigate('negocios')}
-        >
-          <div className="bento-marquee-container">
-            <div className="bento-marquee-track">
-              {[...featuredBiz, ...featuredBiz].map((b, idx) => (
-                <div key={idx} className="bento-marquee-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>{b.nombre}</span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px', color: 'var(--accent-amber)' }}>
-                    ★ {b.rating}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ height: '70px' }}></div>
-        </BentoCard>
-
-        {/* Card 6: Próximos Eventos (Span 8) */}
-        <BentoCard
-          Icon={Calendar}
-          name="Próximos Eventos"
-          description="Acompáñanos en los talleres, ferias y festivales de nuestra comunidad latina."
-          cta="Ver calendario de eventos"
-          className="magic-bento-col-8"
-          onClick={() => onNavigate('eventos')}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px', marginBottom: '16px', pointerEvents: 'auto', zIndex: 10 }}>
-            {nextEvents.slice(0, 2).map((ev) => {
-              return (
-                <div key={ev.id} className="glass-card" style={{ padding: '10px 14px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.02)' }} onClick={(e) => { e.stopPropagation(); onNavigate('eventos'); }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h4 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{ev.nombre}</h4>
-                    {ev.gratis && <span style={{ fontSize: '0.62rem', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>GRATIS</span>}
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    <span style={{ color: 'var(--accent-purple)', fontWeight: 600 }}>{formatDate(ev.fecha)}</span>
-                    <span>·</span>
-                    <span>{ev.hora}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </BentoCard>
-
-        {/* Card 7: Public Speaker (Span 4) */}
+        {/* Card 5: Public Speaker (Span 4) */}
         <BentoCard
           Icon={Award}
           name="Agenda una Charla"
-          description="Invita a Berta como conferencista para tu escuela, iglesia o empresa."
+          description="Invita a Berta como conferencista para tu escuela, grupo de fe o empresa."
           cta="Agendar charla con Berta"
-          className="magic-bento-col-4"
+          className="magic-bento-col-4 glow-amber"
           onClick={() => onNavigate('speaker')}
           background={
             <div style={{
@@ -276,7 +285,7 @@ const HomeView = ({
             </div>
           }
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '6px', marginBottom: '14px', zIndex: 10 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '8px', marginBottom: '14px', zIndex: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>🎓</span>
               <span>Educación de estudiantes e hijos</span>
@@ -292,11 +301,11 @@ const HomeView = ({
           </div>
         </BentoCard>
 
-        {/* Card 8: Conecta (Span 12) */}
+        {/* Card 6: Conecta (Span 12) */}
         <BentoCard
           Icon={Mail}
-          name="Conecta con Nosotros"
-          description="¿Tienes alguna propuesta de colaboración, duda u opinión? Estaremos encantados de escucharte."
+          name="Conecta con Berta"
+          description="Envía tus preguntas para el segmento Dame La Letra, comparte tu testimonio o agenda una conferencia."
           cta="Ir a Conecta"
           className="magic-bento-col-12 glow-purple"
           onClick={() => onNavigate('conecta')}

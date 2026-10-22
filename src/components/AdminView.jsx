@@ -157,10 +157,9 @@ const AdminView = ({
       <div className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
           <SidebarItem icon={<LayoutDashboard size={20} />} label="Dashboard" active={activeMenu === 'dashboard'} onClick={() => {setActiveMenu('dashboard'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<Mic size={20} />} label="ConBERTAciones" active={activeMenu === 'episodios'} onClick={() => {setActiveMenu('episodios'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<BookOpen size={20} />} label="Under the Umbrella" active={activeMenu === 'reflexiones'} onClick={() => {setActiveMenu('reflexiones'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<Newspaper size={20} />} label="Noticias & Blog" active={activeMenu === 'noticias'} onClick={() => {setActiveMenu('noticias'); setIsSidebarOpen(false)}} />
-          <SidebarItem icon={<User size={20} />} label="Directorio (Invitados)" active={activeMenu === 'negocios'} onClick={() => {setActiveMenu('negocios'); setIsSidebarOpen(false)}} />
+          <SidebarItem icon={<Mic size={20} />} label="ConBERTAciones (Entrevistas)" active={activeMenu === 'episodios'} onClick={() => {setActiveMenu('episodios'); setIsSidebarOpen(false)}} />
+          <SidebarItem icon={<BookOpen size={20} />} label="Under the Umbrella (Reflexiones)" active={activeMenu === 'reflexiones'} onClick={() => {setActiveMenu('reflexiones'); setIsSidebarOpen(false)}} />
+          <SidebarItem icon={<User size={20} />} label="Invitados del Podcast" active={activeMenu === 'negocios'} onClick={() => {setActiveMenu('negocios'); setIsSidebarOpen(false)}} />
           <SidebarItem icon={<Briefcase size={20} />} label="Perfil & Speaker" active={activeMenu === 'perfil'} onClick={() => {setActiveMenu('perfil'); setIsSidebarOpen(false)}} />
           <SidebarItem icon={<Save size={20} />} label="Respaldos" active={activeMenu === 'backup'} onClick={() => {setActiveMenu('backup'); setIsSidebarOpen(false)}} />
           
@@ -175,11 +174,10 @@ const AdminView = ({
         {/* VIEW: DASHBOARD */}
         {activeMenu === 'dashboard' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="responsive-flex">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }} className="responsive-flex">
               <StatCard title="Entrevistas (ConBERTAciones)" value={episodes.length} icon={<Mic size={24} color="#2563EB" />} />
               <StatCard title="Reflexiones (Under the Umbrella)" value={reflections.length} icon={<BookOpen size={24} color="#8B5CF6" />} />
               <StatCard title="Invitados" value={guests.length} icon={<User size={24} color="#10B981" />} />
-              <StatCard title="Noticias/Blog" value={noticias.length} icon={<Newspaper size={24} color="#EC4899" />} />
             </div>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button className="admin-btn-primary" onClick={() => {setFormData({ id: '', title: '', host: 'Berta Weyenberg', duration: '0:00', color: 'purple', art: '', audioUrl: '', audioFile: null, audioFileName: '', description: '' }); setEditingEp('new'); setActiveMenu('episodios');}} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '52px', fontSize: '16px' }}>

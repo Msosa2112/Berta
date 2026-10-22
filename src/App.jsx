@@ -688,17 +688,14 @@ function App() {
     : (activeEpisode ? durationToSeconds(activeEpisode.duration) : 300);
   const playerPercent = activeEpisode ? Math.min(100, (currentTimeSecs / activeEpisodeTotalSecs) * 100) : 0;
 
-  const FULLSCREEN = ['reflection', 'playlist', 'admin', 'article', 'profile'];
+  const FULLSCREEN = ['reflection', 'playlist', 'admin', 'profile'];
   const showNav = !FULLSCREEN.includes(currentView);
 
   const menuItems = [
     { id: 'home', label: 'Inicio', icon: <Home size={18} /> },
     { id: 'podcast', label: 'ConBERTAciones (Entrevistas)', icon: <Mic size={18} /> },
     { id: 'umbrella', label: 'Under the Umbrella (Reflexiones)', icon: <BookOpen size={18} /> },
-    { id: 'speaker', label: 'Public Speaker', icon: <Award size={18} /> },
-    { id: 'noticias', label: 'Noticias & Blog', icon: <Newspaper size={18} /> },
-    { id: 'negocios', label: 'Negocios', icon: <Briefcase size={18} /> },
-    { id: 'eventos', label: 'Eventos', icon: <Calendar size={18} /> },
+    { id: 'speaker', label: 'Agenda una Charla', icon: <Award size={18} /> },
     { id: 'conecta', label: 'Conecta', icon: <Mail size={18} /> },
   ];
 
@@ -821,11 +818,16 @@ function App() {
           {/* View Dispatcher */}
           <div style={{ display: currentView === 'home' ? 'block' : 'none' }}>
             <HomeView
-              episodes={episodes} reflections={reflections}
-              noticias={noticias} eventos={defaultEventos} negocios={defaultNegocios}
-              onPlay={openPlayer} onOpenPlaylist={openPlaylist} onOpenArticle={openArticle}
-              onNavigate={setCurrentView} onOpenProfile={openProfile}
-              savedEpisodes={savedEpisodes} onToggleSave={toggleSaveEpisode}
+              episodes={episodes}
+              reflections={reflections}
+              onPlay={openPlayer}
+              onOpenPlaylist={openPlaylist}
+              onOpenReflection={openReflection}
+              onPlayReflectionAudio={playReflectionAudio}
+              onNavigate={setCurrentView}
+              onOpenProfile={openProfile}
+              savedEpisodes={savedEpisodes}
+              onToggleSave={toggleSaveEpisode}
               triggerToast={triggerToast}
               onOpenMenu={() => setIsDrawerOpen(true)}
             />
@@ -841,13 +843,6 @@ function App() {
               onSyncSpotify={() => handleSyncSpotify(false)}
               isSyncingSpotify={isSyncingSpotify}
               onOpenMenu={() => setIsDrawerOpen(true)}
-            />
-          </div>
-
-          <div style={{ display: currentView === 'noticias' ? 'block' : 'none' }}>
-            <NoticiasView
-              noticias={noticias}
-              onOpenArticle={openArticle}
             />
           </div>
 
@@ -867,22 +862,6 @@ function App() {
           <div style={{ display: currentView === 'speaker' ? 'block' : 'none' }}>
             <PublicSpeakerView
               onNavigate={setCurrentView}
-              triggerToast={triggerToast}
-              onOpenMenu={() => setIsDrawerOpen(true)}
-            />
-          </div>
-
-          <div style={{ display: currentView === 'negocios' ? 'block' : 'none' }}>
-            <DirectorioView
-              negocios={defaultNegocios}
-              triggerToast={triggerToast}
-              onOpenMenu={() => setIsDrawerOpen(true)}
-            />
-          </div>
-
-          <div style={{ display: currentView === 'eventos' ? 'block' : 'none' }}>
-            <EventosView
-              eventos={defaultEventos}
               triggerToast={triggerToast}
               onOpenMenu={() => setIsDrawerOpen(true)}
             />
@@ -913,9 +892,6 @@ function App() {
               onPlayVideo={openReflection}
               onPlayReflectionAudio={playReflectionAudio}
             />
-          )}
-          {currentView === 'article' && activeArticle && (
-            <ArticleView article={activeArticle} onClose={closeArticle} />
           )}
           {currentView === 'profile' && (
             <ProfileView onOpenAdmin={() => navigate('admin')}
@@ -1065,10 +1041,10 @@ function App() {
               <BookOpen size={20} />
               <span className="nav-label">Reflexiones</span>
             </button>
-            <button className={`nav-item ${currentView === 'negocios' ? 'active' : ''}`} onClick={() => setCurrentView('negocios')}>
-              <div className="nav-dot" style={{ opacity: currentView === 'negocios' ? 1 : 0 }} />
-              <Briefcase size={20} />
-              <span className="nav-label">Negocios</span>
+            <button className={`nav-item ${currentView === 'speaker' ? 'active' : ''}`} onClick={() => setCurrentView('speaker')}>
+              <div className="nav-dot" style={{ opacity: currentView === 'speaker' ? 1 : 0 }} />
+              <Award size={20} />
+              <span className="nav-label">Charlas</span>
             </button>
             <button className={`nav-item ${currentView === 'conecta' ? 'active' : ''}`} onClick={() => setCurrentView('conecta')}>
               <div className="nav-dot" style={{ opacity: currentView === 'conecta' ? 1 : 0 }} />
