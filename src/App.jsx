@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Home, Mic, Newspaper, Calendar, MapPin, Menu, X, BookOpen, Award, Briefcase, Mail, Plus, Play, Pause, ChevronDown, ChevronUp, Scale } from 'lucide-react';
+import { Home, Mic, Newspaper, Calendar, MapPin, Menu, X, BookOpen, Award, Briefcase, Mail, Plus, Play, Pause, ChevronDown, ChevronUp, Scale, PenTool } from 'lucide-react';
 import HomeView from './components/HomeView';
 import PodcastView from './components/PodcastView';
 import UnderTheUmbrellaView from './components/UnderTheUmbrellaView';
@@ -56,55 +56,49 @@ const defaultGuests = [
   { id: 'g2', name: 'Carlos Aguilera', business: 'Aguilera Tech Hub', bio: 'Joven emprendedor dominicano enfocado en crear soluciones de IA para la iglesia.', bgPhoto: '/guest_carlos.png', facebook: 'https://facebook.com', instagram: '', linkedin: 'https://linkedin.com', youtube: '', website: '' },
 ];
 
-// ─── NOTICIAS & BLOG DATA ────────────────────────────────────────────────────
+// ─── BLOG DE BERTA DATA ──────────────────────────────────────────────────────
 const defaultNoticias = [
   {
-    id: 'n1', tipo: 'noticia',
-    titulo: 'Nuevo Centro Comunitario Latino abre sus puertas en el West End',
-    excerpt: 'La organización Casa Latina inaugura un espacio multicultural con servicios de traducción, orientación legal y clases de inglés gratuitas.',
-    contenido: '<p>Louisville da la bienvenida a un nuevo espacio de esperanza y servicio. Casa Latina, organización sin fines de lucro con más de diez años sirviendo a la comunidad hispana de Kentucky, inauguró su nuevo centro comunitario en el West End.</p><p>El centro contará con servicios de traducción e interpretación, orientación migratoria gratuita, clases de inglés para adultos y espacios de reunión para organizaciones comunitarias. El horario de atención es de lunes a viernes de 9 AM a 5 PM.</p><p>"Este espacio es de ustedes, es un hogar para nuestra comunidad", dijo la directora ejecutiva Ana Reyes durante el acto inaugural, rodeada de decenas de familias, líderes religiosos y representantes del gobierno municipal.</p>',
-    imagen: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
-    categoria: 'Comunidad', autor: 'Redacción ConBERTAciones', fecha: '2026-04-19', lectura: 3,
-  },
-  {
-    id: 'n2', tipo: 'noticia',
-    titulo: 'JCPS Expande Programa Bilingüe a 5 Nuevas Escuelas en 2026',
-    excerpt: 'El Distrito Escolar del Condado de Jefferson anuncia nuevas aulas de educación dual para el próximo año lectivo.',
-    contenido: '<p>El Distrito Escolar del Condado de Jefferson (JCPS) anunció la expansión de su programa de educación dual a cinco nuevas escuelas para el año lectivo 2026-2027. El programa ya cuenta con más de 3,000 estudiantes inscritos en educación bilingüe desde kindergarten.</p><p>Berta Weyenberg, educadora de JCPS, celebró el anuncio: "Es un paso histórico para nuestra comunidad. Cada niño que crece bilingüe lleva consigo un regalo que nadie puede quitarle."</p><p>Las inscripciones para el nuevo año escolar estarán abiertas a partir del 15 de mayo. Para más información visita el sitio web oficial de JCPS.</p>',
-    imagen: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80',
-    categoria: 'Educación', autor: 'Berta Weyenberg', fecha: '2026-04-15', lectura: 4,
-  },
-  {
-    id: 'n3', tipo: 'noticia',
-    titulo: 'Feria de Salud Gratuita para Familias Hispanas en Shelby Park',
-    excerpt: 'Médicos voluntarios bilingües ofrecerán chequeos, vacunas y recursos de salud mental en español, sin seguro médico requerido.',
-    contenido: '<p>Este sábado 26 de abril, Shelby Park se convertirá en un espacio de salud y bienestar para la comunidad latina de Louisville. Médicos voluntarios bilingües ofrecerán chequeos generales, vacunas, revisiones dentales y recursos de salud mental en español, completamente gratis para toda la familia.</p><p>El evento, organizado por Louisville Latino Alliance con el apoyo de UofL Health, estará disponible de 9 AM a 3 PM. No se requiere seguro médico ni cita previa.</p>',
-    imagen: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80',
-    categoria: 'Salud', autor: 'Redacción ConBERTAciones', fecha: '2026-04-12', lectura: 2,
-  },
-  {
-    id: 'b1', tipo: 'blog',
+    id: 'b1',
+    tipo: 'blog',
     titulo: 'El poder de la fe en tiempos de incertidumbre',
-    excerpt: 'En medio de los cambios que vivimos como comunidad inmigrante, la fe sigue siendo el ancla que nos mantiene unidos y con esperanza.',
-    contenido: '<p>Querida comunidad: vivimos tiempos que nos piden más de lo que a veces sentimos que podemos dar. Familias separadas, sueños postergados, miedo a lo desconocido. Y sin embargo, aquí estamos. Juntos.</p><p>La fe, para muchos de nosotros, no es solo religión. Es la certeza de que hay algo más grande guiando nuestro camino. Es la voz de abuela que nos dice que aguantemos. Es el abrazo de un vecino que no habla nuestro idioma pero entiende nuestro dolor.</p><p>Esta semana, te invito a detenerte cinco minutos. Respira. Recuerda de dónde vienes. Y confía en hacia dónde vas. Nuestra comunidad es más fuerte de lo que creemos.<br /><br /><em>Con amor y fe, Berta.</em></p>',
-    imagen: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
-    categoria: 'Blog', autor: 'Berta Weyenberg', fecha: '2026-04-10', lectura: 5,
+    fraseDestacada: 'La fe sigue siendo el ancla que nos mantiene unidos y con esperanza.',
+    excerpt: 'En medio de los cambios que vivimos como comunidad y como familias, la fe sigue siendo el ancla que nos mantiene unidos y con esperanza.',
+    contenido: '<p>Querida comunidad: vivimos tiempos que nos piden más de lo que a veces sentimos que podemos dar. Familias separadas, sueños postergados, miedo a lo desconocido. Y sin embargo, aquí estamos. Juntos.</p><p>La fe, para nosotros, es la certeza viva de que Dios sigue guiando nuestro camino. Es la voz que nos recuerda que no estamos solos y el abrazo que sostiene a nuestra familia en cada temporada.</p><p>Esta semana, te invito a detenerte cinco minutos. Respira. Recuerda de dónde vienes. Y confía en el propósito que Dios tiene para tu vida y tu hogar.<br /><br /><em>Con amor y fe, Berta.</em></p>',
+    imagen: '/berta.jpeg',
+    galeria: [],
+    categoria: 'Fe & Esperanza',
+    autor: 'Berta Weyenberg',
+    fecha: '2026-04-18',
+    lectura: 4,
   },
   {
-    id: 'n4', tipo: 'noticia',
-    titulo: 'Louisville entre las 20 ciudades de mayor crecimiento hispano en EE.UU.',
-    excerpt: 'Un informe del Pew Research Center sitúa a Louisville como una de las ciudades con mayor crecimiento de la población latina en la última década.',
-    contenido: '<p>Según un nuevo informe del Pew Research Center, Louisville se encuentra entre las 20 ciudades de Estados Unidos con mayor crecimiento porcentual de población hispana en la última década.</p><p>La comunidad latina de Louisville ha crecido un 34% entre 2015 y 2025, pasando de aproximadamente 45,000 a más de 60,000 residentes hispanos en el área metropolitana. Este crecimiento ha impulsado nuevos negocios, organizaciones comunitarias y programas educativos.</p>',
-    imagen: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80',
-    categoria: 'Comunidad', autor: 'Redacción ConBERTAciones', fecha: '2026-04-02', lectura: 3,
+    id: 'b2',
+    tipo: 'blog',
+    titulo: 'Educar el corazón de nuestros hijos más allá del aula',
+    fraseDestacada: 'Cada niño que crece con valores firmes y amor en casa lleva consigo un regalo para toda la vida.',
+    excerpt: 'Reflexión sobre el privilegio de acompañar a nuestros estudiantes e hijos en su crecimiento académico, emocional y espiritual.',
+    contenido: '<p>Después de tantos años en el salón de clases y acompañando a padres de familia, he comprobado una verdad: los niños aprenden tanto de lo que ven en nuestra vida diaria como de los libros que leen.</p><p>Educar requiere paciencia, presencia e intencionalidad. Cuando escuchamos a nuestros hijos, celebramos su esfuerzo y los corregimos con amor y sabiduría, sembramos semillas que darán fruto por generaciones.</p><p>Nunca subestimes el impacto de una palabra de aliento en la mesa familiar antes de empezar el día.</p>',
+    imagen: '/cover_art_games.png',
+    galeria: [],
+    categoria: 'Familia & Educación',
+    autor: 'Berta Weyenberg',
+    fecha: '2026-04-12',
+    lectura: 5,
   },
   {
-    id: 'b2', tipo: 'blog',
-    titulo: 'Cómo la Salsa llevó su ritmo hasta Kentucky',
-    excerpt: 'La historia detrás de la comunidad salsera de Louisville y cómo nuestros inmigrantes trajeron su música y alegría al sur de EE.UU.',
-    contenido: '<p>Pocos imaginaban que en las orillas del río Ohio florecería una escena salsera tan vibrante. Y sin embargo, cada viernes por la noche, cientos de personas se reúnen en salones de Louisville al ritmo del timbal, el bajo y la trompeta.</p><p>Todo comenzó en los años 90, cuando las primeras familias puertorriqueñas y colombianas encontraron en la música una forma de preservar su identidad en medio de una ciudad que aún no las conocía. Hoy, Louisville tiene instructores certificados, competencias regionales y una escena que atrae visitantes de Tennessee, Indiana y Ohio.</p><p><em>La cultura latina se siembra en donde el corazón la lleva.</em></p>',
-    imagen: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=800&q=80',
-    categoria: 'Cultura', autor: 'Carlos Medina', fecha: '2026-04-05', lectura: 6,
+    id: 'b3',
+    tipo: 'blog',
+    titulo: 'Gratitud cotidiana: encontrar propósito bajo la sombrilla',
+    fraseDestacada: 'Aún en los días de lluvia, siempre hay refugio, enseñanza y motivo para agradecer.',
+    excerpt: 'Pequeñas pausas para reflexionar en medio de la rutina diaria y descubrir cómo Dios obra en cada detalle.',
+    contenido: '<p>A veces esperamos grandes acontecimientos para sentirnos agradecidos, pero la verdadera plenitud se construye en los detalles sencillos de cada mañana: una conversación sincera, una oración en familia, la oportunidad de servir a alguien que necesita ánimo.</p><p>En este blog quiero compartir contigo esas reflexiones e imágenes que van marcando nuestro caminar en ConBERTAciones y Under the Umbrella.</p>',
+    imagen: '/logo.png',
+    galeria: [],
+    categoria: 'Reflexiones',
+    autor: 'Berta Weyenberg',
+    fecha: '2026-04-05',
+    lectura: 3,
   },
 ];
 
@@ -399,10 +393,13 @@ function App() {
         storedReflections.sort((a, b) => (b.releaseDate || '').localeCompare(a.releaseDate || ''));
         setReflections(storedReflections);
 
-        // 5. Noticias
+        // 5. Blog de Berta (stored in 'noticias')
         let storedNoticias = await getAll('noticias');
-        if (!storedNoticias || storedNoticias.length === 0) {
-          storedNoticias = defaultNoticias;
+        const hasLegacyNews = !storedNoticias || storedNoticias.length === 0 || storedNoticias.some(n => n.tipo === 'noticia');
+        if (hasLegacyNews) {
+          const customBlogs = (storedNoticias || []).filter(n => n.tipo === 'blog' && n.id !== 'b1' && n.id !== 'b2');
+          storedNoticias = [...customBlogs, ...defaultNoticias];
+          await clearStore('noticias');
           for (const n of storedNoticias) {
             await put('noticias', n);
           }
@@ -784,6 +781,7 @@ function App() {
     { id: 'home', label: 'Inicio', icon: <Home size={18} /> },
     { id: 'podcast', label: 'ConBERTAciones (Entrevistas)', icon: <Mic size={18} /> },
     { id: 'umbrella', label: 'Under the Umbrella (Reflexiones)', icon: <BookOpen size={18} /> },
+    { id: 'noticias', label: 'Blog & Reflexiones', icon: <PenTool size={18} /> },
     { id: 'statement', label: 'The Weyenberg Statement', icon: <Scale size={18} /> },
     { id: 'speaker', label: 'Agenda una Charla', icon: <Award size={18} /> },
     { id: 'conecta', label: 'Conecta', icon: <Mail size={18} /> },
@@ -910,6 +908,7 @@ function App() {
             <HomeView
               episodes={episodes}
               reflections={reflections}
+              noticias={noticias}
               statements={statements}
               onPlay={openPlayer}
               onOpenPlaylist={openPlaylist}
@@ -946,6 +945,17 @@ function App() {
               onNavigate={setCurrentView}
               onSyncSpotify={() => handleSyncSpotify(false)}
               isSyncingSpotify={isSyncingSpotify}
+              onOpenMenu={() => setIsDrawerOpen(true)}
+            />
+          </div>
+
+          <div style={{ display: currentView === 'noticias' ? 'block' : 'none' }}>
+            <NoticiasView
+              noticias={noticias}
+              onAddNoticia={handleAddNoticia}
+              onUpdateNoticia={handleUpdateNoticia}
+              onDeleteNoticia={handleDeleteNoticia}
+              triggerToast={triggerToast}
               onOpenMenu={() => setIsDrawerOpen(true)}
             />
           </div>
@@ -1142,6 +1152,11 @@ function App() {
               <div className="nav-dot" style={{ opacity: currentView === 'umbrella' ? 1 : 0 }} />
               <BookOpen size={20} />
               <span className="nav-label">Reflexiones</span>
+            </button>
+            <button className={`nav-item ${currentView === 'noticias' ? 'active' : ''}`} onClick={() => setCurrentView('noticias')}>
+              <div className="nav-dot" style={{ opacity: currentView === 'noticias' ? 1 : 0 }} />
+              <PenTool size={20} />
+              <span className="nav-label">Blog</span>
             </button>
             <button className={`nav-item ${currentView === 'statement' ? 'active' : ''}`} onClick={() => setCurrentView('statement')}>
               <div className="nav-dot" style={{ opacity: currentView === 'statement' ? 1 : 0 }} />

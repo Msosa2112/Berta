@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   Scale,
@@ -73,10 +73,22 @@ const WeyenbergStatementView = ({
 
   // Mini Admin Panel States
   const [isAdminOpen, setIsAdminOpen] = useState(false);
-  const [isAdminLogged, setIsAdminLogged] = useState(false);
+  const [isAdminLogged, setIsAdminLogged] = useState(() => {
+    try {
+      return sessionStorage.getItem('weyenberg_admin_auth') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [showPass, setShowPass] = useState(false);
+
+  useEffect(() => {
+    try {
+      setIsAdminLogged(sessionStorage.getItem('weyenberg_admin_auth') === 'true');
+    } catch {}
+  }, [isAdminOpen]);
 
   const emptyForm = {
     id: '',
@@ -118,9 +130,12 @@ const WeyenbergStatementView = ({
     if (
       (u === 'weyenberg' && p === 'statement2026') ||
       (u === 'berta' && (p === 'statement2026' || p === 'berta')) ||
-      (u === 'admin' && p === 'berta')
+      (u === 'admin' && (p === 'statement2026' || p === 'berta'))
     ) {
       setIsAdminLogged(true);
+      try {
+        sessionStorage.setItem('weyenberg_admin_auth', 'true');
+      } catch {}
       if (triggerToast) triggerToast('Bienvenida al Panel de The Weyenberg Statement');
     } else {
       if (triggerToast) triggerToast('Usuario o contraseña incorrectos');
@@ -414,6 +429,9 @@ const WeyenbergStatementView = ({
                       onClick={() => {
                         setIsAdminLogged(false);
                         setEditingId(null);
+                        try {
+                          sessionStorage.removeItem('weyenberg_admin_auth');
+                        } catch {}
                       }}
                       className="btn-secondary"
                       style={{

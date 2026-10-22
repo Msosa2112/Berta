@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, BookOpen, MapPin, Clock, ArrowRight, Mic, Award, Mail, ChevronDown, Calendar, Scale } from 'lucide-react';
+import { Play, BookOpen, MapPin, Clock, ArrowRight, Mic, Award, Mail, ChevronDown, Calendar, Scale, PenTool } from 'lucide-react';
 import { InteractiveHoverButton } from './InteractiveHoverButton';
 
 const BentoGrid = ({ children }) => {
@@ -28,6 +28,7 @@ const BentoCard = ({ Icon, name, description, cta, className, background, childr
 const HomeView = ({
   episodes,
   reflections,
+  noticias = [],
   statements = [],
   onPlay,
   onOpenPlaylist,
@@ -38,6 +39,7 @@ const HomeView = ({
   const featuredEp = episodes[0];
   const recentInterviews = episodes.slice(0, 3);
   const recentReflections = reflections.slice(0, 4);
+  const latestBlog = noticias[0];
   const latestStatement = statements[0];
   const [bioExpanded, setBioExpanded] = useState(false);
 
@@ -303,13 +305,13 @@ const HomeView = ({
           </div>
         </BentoCard>
 
-        {/* Card 6: The Weyenberg Statement (Span 8) */}
+        {/* Card 6: The Weyenberg Statement (Span 6) */}
         <BentoCard
           Icon={Scale}
           name="The Weyenberg Statement"
           description="Statements de la familia Weyenberg basados en conceptos bíblicos, analizando fenómenos de la actualidad con un lente bíblico."
           cta="Leer todos los Statements"
-          className="magic-bento-col-8 glow-purple"
+          className="magic-bento-col-6 glow-purple"
           onClick={() => onNavigate('statement')}
         >
           {latestStatement && (
@@ -325,7 +327,7 @@ const HomeView = ({
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
-                <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--accent-terracotta)', letterSpacing: '0.05em' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--accent-terracotta)', letterSpacing: '0.03em' }}>
                   {latestStatement.categoria || 'Cosmovisión Bíblica'}
                 </span>
                 {latestStatement.versiculo && (
@@ -344,16 +346,52 @@ const HomeView = ({
           )}
         </BentoCard>
 
-        {/* Card 7: Conecta (Span 4) */}
+        {/* Card 7: Blog de Berta · Reflexiones e Imágenes (Span 6) */}
+        <BentoCard
+          Icon={PenTool}
+          name="Blog de Berta · Reflexiones"
+          description="Reflexiones escritas, enseñanzas para la familia y galerías de imágenes compartidas por Berta."
+          cta="Ir al Blog de Berta"
+          className="magic-bento-col-6 glow-amber"
+          onClick={() => onNavigate('noticias')}
+        >
+          {latestBlog && (
+            <div
+              className="glass-card"
+              style={{
+                padding: '12px 14px',
+                marginTop: '8px',
+                marginBottom: '14px',
+                border: '1px solid var(--glass-border)',
+                background: 'rgba(255,255,255,0.5)',
+                zIndex: 10,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--accent-purple)', letterSpacing: '0.03em' }}>
+                  ✍️ {latestBlog.categoria || 'Reflexiones'}
+                </span>
+              </div>
+              <div style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                {latestBlog.titulo}
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                {latestBlog.excerpt}
+              </div>
+            </div>
+          )}
+        </BentoCard>
+
+        {/* Card 8: Conecta (Span 12) */}
         <BentoCard
           Icon={Mail}
           name="Conecta con Berta"
           description="Envía tus preguntas para el segmento Dame La Letra, comparte tu testimonio o agenda una conferencia."
           cta="Ir a Conecta"
-          className="magic-bento-col-4 glow-amber"
+          className="magic-bento-col-12 glow-purple"
           onClick={() => onNavigate('conecta')}
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', marginBottom: '12px', zIndex: 10 }}>
+          <div style={{ display: 'flex', gap: '24px', marginTop: '8px', marginBottom: '12px', flexWrap: 'wrap', zIndex: 10 }}>
             <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span>📍</span> Louisville, Kentucky
             </div>
