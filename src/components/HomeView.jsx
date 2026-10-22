@@ -110,11 +110,11 @@ const HomeView = ({
         {/* Card 2: ConBERTAciones Podcast (Span 8) */}
         <BentoCard
           Icon={Mic}
-          name="ConBERTAciones Podcast"
-          description={featuredEp ? `Último Episodio: ${featuredEp.title.split('|')[0]}` : "Diálogos inspiradores con líderes y miembros de la comunidad."}
-          cta="Escuchar ahora"
+          name="ConBERTAciones · Entrevistas"
+          description={featuredEp ? `Entrevistas y diálogos con invitados · Última: ${featuredEp.title.split('|')[0]}` : "Programa de entrevistas y conversaciones profundas con líderes de la comunidad."}
+          cta="Ver todas las entrevistas"
           className="magic-bento-col-8 glow-purple"
-          onClick={() => featuredEp && onPlay(featuredEp)}
+          onClick={() => onNavigate('podcast')}
           background={
             featuredEp && (
               <div style={{
@@ -138,7 +138,7 @@ const HomeView = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px', marginBottom: '16px', zIndex: 10, pointerEvents: 'auto' }}>
               <button className="btn-primary" style={{ padding: '8px 20px', fontSize: '0.82rem' }} onClick={(e) => { e.stopPropagation(); onPlay(featuredEp); }}>
                 <Play size={14} fill="currentColor" />
-                <span>{featuredEp.duration}</span>
+                <span>Escuchar ({featuredEp.duration})</span>
               </button>
               <div className="wave-container">
                 <div className="wave-bar"></div>
@@ -154,18 +154,18 @@ const HomeView = ({
         {/* Card 3: Bajo la Sombrilla / Reflections (Span 4) */}
         <BentoCard
           Icon={BookOpen}
-          name="Bajo la Sombrilla"
-          description="Mensajes semanales en dos idiomas para inspirar tu fe y resiliencia en el día a día."
-          cta="Ver reflexiones"
+          name="Under the Umbrella · Reflexiones"
+          description={`Reflexiones cortas bilingües (${reflections.length} cápsulas ES/EN) en lectura y audio para tu día a día.`}
+          cta="Explorar reflexiones"
           className="magic-bento-col-4 glow-amber"
           onClick={() => onNavigate('umbrella')}
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', marginBottom: '16px', pointerEvents: 'auto', zIndex: 10 }}>
             <InteractiveHoverButton style={{ width: '100%', justifyContent: 'flex-start' }} onClick={(e) => { e.stopPropagation(); onOpenPlaylist('es'); }}>
-              Bajo la Sombrilla (ES)
+              ☂️ Reflexiones en Español (ES)
             </InteractiveHoverButton>
             <InteractiveHoverButton style={{ width: '100%', justifyContent: 'flex-start' }} onClick={(e) => { e.stopPropagation(); onOpenPlaylist('en'); }}>
-              Under the Umbrella (EN)
+              ☂️ Reflections in English (EN)
             </InteractiveHoverButton>
           </div>
         </BentoCard>

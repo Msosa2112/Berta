@@ -15,16 +15,42 @@ import UmbrellaPlaylistView from './components/UmbrellaPlaylistView';
 import ArticleView from './components/ArticleView';
 import ProfileView from './components/ProfileView';
 import { openDB, getAll, put, deleteItem, clearStore } from './utils/db';
+import {
+  getInitialSpotifyInterviews,
+  getInitialSpotifyReflections,
+  syncSpotifyContent,
+  CONBERTACIONES_SPOTIFY_URL,
+} from './utils/spotify';
 
-// ─── PODCAST DATA ────────────────────────────────────────────────────────────
-const defaultEpisodes = [
-  { id: '1', title: 'EP - 251 | Exploring the Art and Science of Games', host: 'Berta Weyenberg', duration: '3:29', color: 'purple', art: '/cover_art_games.png', audioUrl: '' },
-  { id: '2', title: 'EP - 521 | Comedy Central Chatter', host: 'Dr. Hector J. Ruiz', duration: '45:10', color: 'purple', art: '/cover_art_comedy.png', audioUrl: '' },
-  { id: '3', title: 'EP - 754 | Jóvenes emprendedores y la fe', host: 'Carlos Aguilera', duration: '52:00', color: 'purple', art: '/cover_art_faith.png', audioUrl: '' },
-  { id: '4', title: 'EP - 344 | Gaming Adventures Unleashed', host: 'Berta Weyenberg', duration: '38:20', color: 'purple', art: '/cover_art_adventure.png', audioUrl: '' },
-];
+// ─── PODCAST DATA (ConBERTAciones = Entrevistas | Under the Umbrella = Reflexiones) ───
+const defaultEpisodes = getInitialSpotifyInterviews();
+const defaultReflections = getInitialSpotifyReflections();
 
 const defaultGuests = [
+  {
+    id: 'g_rachel',
+    name: 'Rachel Greenberg',
+    business: 'Primera Dama de Louisville',
+    bio: 'Conversación íntima uno a uno con Berta sobre liderazgo comunitario, familia y el futuro de Louisville.',
+    bgPhoto: 'https://i.scdn.co/image/ab6765630000ba8a3621f8847b2a7f7c0b402271',
+    facebook: '',
+    instagram: 'https://instagram.com',
+    linkedin: '',
+    youtube: '',
+    website: 'https://louisvilleky.gov',
+  },
+  {
+    id: 'g_noemi',
+    name: 'Noemi Robinson',
+    business: "Tatiana's Light Foundation",
+    bio: 'La fe tras la pérdida de su hija y cómo el educar a otros es parte viva del legado de Tatiana.',
+    bgPhoto: 'https://i.scdn.co/image/ab6765630000ba8a3621f8847b2a7f7c0b402271',
+    facebook: 'https://www.facebook.com/share/g/18mjhiSMHK/',
+    instagram: '',
+    linkedin: '',
+    youtube: '',
+    website: 'https://www.tatianaslight.org',
+  },
   { id: 'g1', name: 'Dr. Hector J. Ruiz', business: 'Lexington Comedy Club', bio: 'Comediante local con más de 10 años haciendo reír a Kentucky.', bgPhoto: '/guest_hector.png', facebook: '', instagram: 'https://instagram.com', linkedin: '', youtube: '', website: '' },
   { id: 'g2', name: 'Carlos Aguilera', business: 'Aguilera Tech Hub', bio: 'Joven emprendedor dominicano enfocado en crear soluciones de IA para la iglesia.', bgPhoto: '/guest_carlos.png', facebook: 'https://facebook.com', instagram: '', linkedin: 'https://linkedin.com', youtube: '', website: '' },
 ];
@@ -223,9 +249,42 @@ function App() {
   // Audio Player states and refs
   const audioRef = useRef(null);
   const [audioSrc, setAudioSrc] = useState('');
+  const [audioDurationSecs, setAudioDurationSecs] = useState(0);
+  const [isSyncingSpotify, setIsSyncingSpotify] = useState(false);
 
   const [toast, setToast] = useState(null);
   const triggerToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2500); };
+
+  const handleSyncSpotify = async (silent = false) => {
+    setIsSyncingSpotify(true);
+    try {
+      const { interviews, reflections: syncedReflections } = await syncSpotifyContent();
+      if (interviews && interviews.length > 0) {
+        await clearStore('episodes');
+        for (const ep of interviews) {
+          await put('episodes', ep);
+        }
+        setEpisodes(interviews);
+      }
+      if (syncedReflections && syncedReflections.length > 0) {
+        await clearStore('reflections');
+        for (const r of syncedReflections) {
+          await put('reflections', r);
+        }
+        setReflections(syncedReflections);
+      }
+      if (!silent) {
+        triggerToast(`Sincronizado con Spotify: ${interviews.length} entrevistas y ${syncedReflections.length} reflexiones`);
+      }
+    } catch (err) {
+      console.error('Error syncing with Spotify:', err);
+      if (!silent) {
+        triggerToast('Usando catálogo local de Spotify for Creators');
+      }
+    } finally {
+      setIsSyncingSpotify(false);
+    }
+  };
 
   // Load initial data from IndexedDB
   useEffect(() => {
@@ -248,61 +307,52 @@ function App() {
         }
         setProfileSettings(currentProfile);
 
-        // 2. Episodes
+        // 2. Episodes (ConBERTAciones = Entrevistas)
         let storedEpisodes = await getAll('episodes');
-        if (!storedEpisodes || storedEpisodes.length === 0) {
-          try {
-            const lsEp = JSON.parse(localStorage.getItem('conbertaciones_episodes_v2'));
-            if (lsEp && lsEp.length > 0) storedEpisodes = lsEp;
-          } catch (e) {}
-          
-          if (!storedEpisodes || storedEpisodes.length === 0) {
-            storedEpisodes = defaultEpisodes;
-          }
+        const hasLegacyMockEpisodes =
+          !storedEpisodes ||
+          storedEpisodes.length === 0 ||
+          storedEpisodes.every(e => !e.spotifyId && !e.audioUrl);
+
+        if (hasLegacyMockEpisodes) {
+          storedEpisodes = defaultEpisodes;
+          await clearStore('episodes');
           for (const ep of storedEpisodes) {
             await put('episodes', ep);
           }
         }
+        // Sort interviews newest first
+        storedEpisodes.sort((a, b) => (b.releaseDate || '').localeCompare(a.releaseDate || ''));
         setEpisodes(storedEpisodes);
 
         // 3. Guests
         let storedGuests = await getAll('guests');
-        if (!storedGuests || storedGuests.length === 0) {
-          try {
-            const lsGuests = JSON.parse(localStorage.getItem('conbertaciones_guests'));
-            if (lsGuests && lsGuests.length > 0) storedGuests = lsGuests;
-          } catch (e) {}
-
-          if (!storedGuests || storedGuests.length === 0) {
-            storedGuests = defaultGuests;
-          }
+        if (!storedGuests || storedGuests.length === 0 || !storedGuests.some(g => g.id === 'g_rachel')) {
+          const existingIds = new Set((storedGuests || []).map(g => g.id));
+          const mergedGuests = [...defaultGuests, ...(storedGuests || []).filter(g => !existingIds.has(g.id) && g.id !== 'g1' && g.id !== 'g2')];
+          storedGuests = mergedGuests;
+          await clearStore('guests');
           for (const g of storedGuests) {
             await put('guests', g);
           }
         }
         setGuests(storedGuests);
 
-        // 4. Reflections
+        // 4. Reflections (Under the Umbrella = Reflexiones Bilingües)
         let storedReflections = await getAll('reflections');
-        if (!storedReflections || storedReflections.length === 0) {
-          try {
-            const lsRef = JSON.parse(localStorage.getItem('conbertaciones_reflections_v2'));
-            if (lsRef && lsRef.length > 0) storedReflections = lsRef;
-          } catch (e) {}
+        const hasLegacyMockReflections =
+          !storedReflections ||
+          storedReflections.length <= 1 ||
+          storedReflections.every(r => !r.spotifyIdEs && !r.spotifyIdEn);
 
-          if (!storedReflections || storedReflections.length === 0) {
-            storedReflections = [{
-              id: '1', titleEn: 'The Power of Resilience', titleEs: 'El Poder de la Resiliencia',
-              contentEn: '<p>Sometimes the hardest part of the journey is simply taking the first step.</p>',
-              contentEs: '<p>A veces, la parte más difícil del viaje es simplemente dar el primer paso.</p>',
-              videoEn: '', videoEs: '',
-              thumbnail: '/cover_art_games.png',
-            }];
-          }
+        if (hasLegacyMockReflections) {
+          storedReflections = defaultReflections;
+          await clearStore('reflections');
           for (const r of storedReflections) {
             await put('reflections', r);
           }
         }
+        storedReflections.sort((a, b) => (b.releaseDate || '').localeCompare(a.releaseDate || ''));
         setReflections(storedReflections);
 
         // 5. Noticias
@@ -321,6 +371,8 @@ function App() {
           setSavedEpisodes(lsSaved);
         } catch (e) {}
 
+        // Refresh from live Spotify API in background
+        handleSyncSpotify(true);
       } catch (err) {
         console.error("Failed to load IndexedDB data", err);
       } finally {
@@ -558,7 +610,29 @@ function App() {
     setActiveEpisode(episode);
     setIsPlaying(true);
     setCurrentTimeSecs(0);
+    setAudioDurationSecs(0);
     triggerToast(`Escuchando: ${episode.title.split('|')[0]}`);
+  };
+
+  const playReflectionAudio = (reflection, lang = 'es') => {
+    const isEn = lang === 'en' && (reflection.audioEn || reflection.titleEn);
+    const title = isEn ? (reflection.titleEn || reflection.titleEs) : (reflection.titleEs || reflection.titleEn);
+    const audioUrl = isEn ? (reflection.audioEn || reflection.audioEs) : (reflection.audioEs || reflection.audioEn);
+    const duration = isEn ? (reflection.durationEn || reflection.durationEs || '3:00') : (reflection.durationEs || reflection.durationEn || '3:00');
+    const spotifyUrl = isEn ? (reflection.spotifyUrlEn || reflection.spotifyUrlEs) : (reflection.spotifyUrlEs || reflection.spotifyUrlEn);
+    const description = isEn ? (reflection.rawEn || reflection.rawEs) : (reflection.rawEs || reflection.rawEn);
+
+    openPlayer({
+      id: `${reflection.id}_${isEn ? 'en' : 'es'}`,
+      title,
+      host: `Berta Weyenberg · Reflexión (${isEn ? 'EN' : 'ES'})`,
+      category: 'Reflexión · Under the Umbrella',
+      duration,
+      art: reflection.thumbnail || '/cover_art_games.png',
+      audioUrl,
+      spotifyUrl,
+      description,
+    });
   };
 
   const openReflection = (r) => { 
@@ -566,9 +640,9 @@ function App() {
     navigate('reflection'); 
   };
 
-  const closeReflection = () => activePlaylist ? setCurrentView('playlist') : setCurrentView('podcast');
+  const closeReflection = () => activePlaylist ? setCurrentView('playlist') : setCurrentView('umbrella');
   const openPlaylist = (lang) => { setActivePlaylist(lang); navigate('playlist'); };
-  const closePlaylist = () => { setActivePlaylist(null); setCurrentView('podcast'); };
+  const closePlaylist = () => { setActivePlaylist(null); setCurrentView('umbrella'); };
   const openArticle = (article) => { setActiveArticle(article); navigate('article'); };
   const closeArticle = () => setCurrentView('noticias');
   const openProfile = () => navigate('profile');
@@ -598,21 +672,29 @@ function App() {
     }
   };
 
+  const handleLoadedMetadata = (e) => {
+    if (e.target.duration && !isNaN(e.target.duration) && isFinite(e.target.duration)) {
+      setAudioDurationSecs(Math.floor(e.target.duration));
+    }
+  };
+
   const handleAudioEnded = () => {
     setIsPlaying(false);
     setCurrentTimeSecs(0);
   };
 
-  const activeEpisodeTotalSecs = activeEpisode ? durationToSeconds(activeEpisode.duration) : 300;
-  const playerPercent = activeEpisode ? (currentTimeSecs / activeEpisodeTotalSecs) * 100 : 0;
+  const activeEpisodeTotalSecs = audioDurationSecs > 0
+    ? audioDurationSecs
+    : (activeEpisode ? durationToSeconds(activeEpisode.duration) : 300);
+  const playerPercent = activeEpisode ? Math.min(100, (currentTimeSecs / activeEpisodeTotalSecs) * 100) : 0;
 
   const FULLSCREEN = ['reflection', 'playlist', 'admin', 'article', 'profile'];
   const showNav = !FULLSCREEN.includes(currentView);
 
   const menuItems = [
     { id: 'home', label: 'Inicio', icon: <Home size={18} /> },
-    { id: 'podcast', label: 'ConBERTAciones', icon: <Mic size={18} /> },
-    { id: 'umbrella', label: 'Under Umbrella', icon: <BookOpen size={18} /> },
+    { id: 'podcast', label: 'ConBERTAciones (Entrevistas)', icon: <Mic size={18} /> },
+    { id: 'umbrella', label: 'Under the Umbrella (Reflexiones)', icon: <BookOpen size={18} /> },
     { id: 'speaker', label: 'Public Speaker', icon: <Award size={18} /> },
     { id: 'noticias', label: 'Noticias & Blog', icon: <Newspaper size={18} /> },
     { id: 'negocios', label: 'Negocios', icon: <Briefcase size={18} /> },
@@ -755,6 +837,9 @@ function App() {
               savedEpisodes={savedEpisodes}
               onPlay={openPlayer} onOpenReflection={openReflection}
               onOpenPlaylist={openPlaylist} onToggleSave={toggleSaveEpisode}
+              onNavigate={setCurrentView}
+              onSyncSpotify={() => handleSyncSpotify(false)}
+              isSyncingSpotify={isSyncingSpotify}
               onOpenMenu={() => setIsDrawerOpen(true)}
             />
           </div>
@@ -771,6 +856,10 @@ function App() {
               reflections={reflections}
               onOpenPlaylist={openPlaylist}
               onOpenReflection={openReflection}
+              onPlayReflectionAudio={playReflectionAudio}
+              onNavigate={setCurrentView}
+              onSyncSpotify={() => handleSyncSpotify(false)}
+              isSyncingSpotify={isSyncingSpotify}
               onOpenMenu={() => setIsDrawerOpen(true)}
             />
           </div>
@@ -809,12 +898,20 @@ function App() {
 
           {/* Overlays / Fullscreen Panel Components */}
           {currentView === 'reflection' && activeReflection && (
-            <ReflectionView reflection={activeReflection} onClose={closeReflection} triggerToast={triggerToast} />
+            <ReflectionView
+              reflection={activeReflection}
+              onClose={closeReflection}
+              onPlayReflectionAudio={playReflectionAudio}
+              triggerToast={triggerToast}
+            />
           )}
           {currentView === 'playlist' && activePlaylist && (
             <UmbrellaPlaylistView
               reflections={reflections.filter(r => activePlaylist === 'en' ? (r.videoEn || r.contentEn) : (r.videoEs || r.contentEs))}
-              language={activePlaylist} onClose={closePlaylist} onPlayVideo={openReflection}
+              language={activePlaylist}
+              onClose={closePlaylist}
+              onPlayVideo={openReflection}
+              onPlayReflectionAudio={playReflectionAudio}
             />
           )}
           {currentView === 'article' && activeArticle && (
@@ -836,6 +933,8 @@ function App() {
               onImportBackup={handleImportBackup}
               onAdd={addEpisode} onUpdate={updateEpisode} onDelete={deleteEpisode}
               onAddGuest={addGuest} onUpdateGuest={updateGuest} onDeleteGuest={deleteGuest}
+              onSyncSpotify={() => handleSyncSpotify(false)}
+              isSyncingSpotify={isSyncingSpotify}
               onClose={() => setCurrentView('profile')} triggerToast={triggerToast}
             />
           )}
@@ -843,7 +942,7 @@ function App() {
 
         {/* ── Persistent Bottom Media Player Bar ── */}
         {activeEpisode && (
-          <div className="persistent-player" style={{ height: isPlayerExpanded ? 'auto' : '76px' }}>
+          <div className="persistent-player" style={{ height: isPlayerExpanded ? 'auto' : '76px', zIndex: 150 }}>
             <div className="player-main-row">
               <div className="player-track-info" onClick={() => setIsPlayerExpanded(!isPlayerExpanded)} style={{ cursor: 'pointer' }}>
                 <div className="player-art">
@@ -851,15 +950,33 @@ function App() {
                 </div>
                 <div className="player-meta">
                   <div className="player-title">{activeEpisode.title.split('|')[0]}</div>
-                  <div className="player-subtitle">{activeEpisode.host || 'Berta Weyenberg'}</div>
+                  <div className="player-subtitle">
+                    {activeEpisode.category?.includes('Reflexión') ? '☂️ Reflexión · ' : '🎙️ Entrevista · '}
+                    {activeEpisode.host || 'Berta Weyenberg'}
+                  </div>
                 </div>
               </div>
               
               <div className="player-controls">
-                <button className="player-btn" onClick={() => toggleSaveEpisode(activeEpisode.id)}>
+                {activeEpisode.spotifyUrl && (
+                  <a
+                    href={activeEpisode.spotifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="player-btn"
+                    title="Escuchar en Spotify"
+                    onClick={e => e.stopPropagation()}
+                    style={{ color: '#1DB954', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                    </svg>
+                  </a>
+                )}
+                <button className="player-btn" onClick={() => toggleSaveEpisode(activeEpisode.id)} title="Guardar">
                   <Plus size={20} style={{ color: savedEpisodes.includes(activeEpisode.id) ? 'var(--accent-purple)' : 'inherit', transform: savedEpisodes.includes(activeEpisode.id) ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s' }} />
                 </button>
-                <button className="player-btn player-btn-play" onClick={() => setIsPlaying(!isPlaying)}>
+                <button className="player-btn player-btn-play" onClick={() => setIsPlaying(!isPlaying)} title={isPlaying ? 'Pausar' : 'Reproducir'}>
                   {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" style={{ marginLeft: '1.5px' }} />}
                 </button>
                 <button className="player-btn" onClick={() => setIsPlayerExpanded(!isPlayerExpanded)}>
@@ -885,13 +1002,37 @@ function App() {
                   }}>
                     <div className="player-bar-fill" style={{ width: `${playerPercent}%` }}></div>
                   </div>
-                  <span className="player-time">{activeEpisode.duration}</span>
+                  <span className="player-time">{audioDurationSecs > 0 ? formatTime(audioDurationSecs) : activeEpisode.duration}</span>
                 </div>
                 
                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                  <h4 style={{ fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: '4px' }}>Acerca del Episodio</h4>
-                  <p>
-                    Escucha esta ConBERTAción inspiradora conducida por Berta Weyenberg. Este episodio aborda lecciones de fe práctica, motivación diaria y desarrollo comunitario en Louisville, KY.
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
+                    <h4 style={{ fontSize: '0.88rem', color: 'var(--text-primary)', margin: 0 }}>
+                      {activeEpisode.category?.includes('Reflexión') ? 'Acerca de esta Reflexión (Under the Umbrella)' : 'Acerca de la Entrevista (ConBERTAciones)'}
+                    </h4>
+                    <a
+                      href={activeEpisode.spotifyUrl || CONBERTACIONES_SPOTIFY_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.76rem',
+                        fontWeight: 600,
+                        color: '#1DB954',
+                        textDecoration: 'none',
+                        padding: '4px 10px',
+                        borderRadius: '999px',
+                        background: 'rgba(29, 185, 84, 0.12)',
+                        border: '1px solid rgba(29, 185, 84, 0.3)',
+                      }}
+                    >
+                      <span>Abrir en Spotify</span>
+                    </a>
+                  </div>
+                  <p style={{ maxHeight: '90px', overflowY: 'auto', margin: 0 }}>
+                    {activeEpisode.description || 'Escucha esta ConBERTAción inspiradora conducida por Berta Weyenberg sobre fe, resiliencia y desarrollo comunitario en Louisville, KY.'}
                   </p>
                 </div>
               </div>
@@ -917,12 +1058,12 @@ function App() {
             <button className={`nav-item ${currentView === 'podcast' ? 'active' : ''}`} onClick={() => setCurrentView('podcast')}>
               <div className="nav-dot" style={{ opacity: currentView === 'podcast' ? 1 : 0 }} />
               <Mic size={20} />
-              <span className="nav-label">Podcast</span>
+              <span className="nav-label">Entrevistas</span>
             </button>
             <button className={`nav-item ${currentView === 'umbrella' ? 'active' : ''}`} onClick={() => setCurrentView('umbrella')}>
               <div className="nav-dot" style={{ opacity: currentView === 'umbrella' ? 1 : 0 }} />
               <BookOpen size={20} />
-              <span className="nav-label">Umbrella</span>
+              <span className="nav-label">Reflexiones</span>
             </button>
             <button className={`nav-item ${currentView === 'negocios' ? 'active' : ''}`} onClick={() => setCurrentView('negocios')}>
               <div className="nav-dot" style={{ opacity: currentView === 'negocios' ? 1 : 0 }} />
@@ -941,6 +1082,7 @@ function App() {
         ref={audioRef}
         src={audioSrc}
         onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
         onEnded={handleAudioEnded}
       />
     </div>

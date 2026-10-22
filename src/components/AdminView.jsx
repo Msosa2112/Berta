@@ -15,6 +15,7 @@ const AdminView = ({
   onImportBackup,
   onAdd, onUpdate, onDelete, 
   onAddGuest, onUpdateGuest, onDeleteGuest, 
+  onSyncSpotify, isSyncingSpotify,
   onClose, triggerToast
 }) => {
   // --- STATE ---
@@ -174,17 +175,33 @@ const AdminView = ({
         {/* VIEW: DASHBOARD */}
         {activeMenu === 'dashboard' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }} className="responsive-flex">
-              <StatCard title="Episodios" value={episodes.length} icon={<Mic size={24} color="#2563EB" />} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="responsive-flex">
+              <StatCard title="Entrevistas (ConBERTAciones)" value={episodes.length} icon={<Mic size={24} color="#2563EB" />} />
+              <StatCard title="Reflexiones (Under the Umbrella)" value={reflections.length} icon={<BookOpen size={24} color="#8B5CF6" />} />
               <StatCard title="Invitados" value={guests.length} icon={<User size={24} color="#10B981" />} />
               <StatCard title="Noticias/Blog" value={noticias.length} icon={<Newspaper size={24} color="#EC4899" />} />
             </div>
-            <button className="admin-btn-primary" onClick={() => {setFormData({ id: '', title: '', host: 'Berta Weyenberg', duration: '0:00', color: 'purple', art: '', audioUrl: '', audioFile: null, audioFileName: '', description: '' }); setEditingEp('new'); setActiveMenu('episodios');}} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '56px', fontSize: '18px' }}>
-              <Plus size={24} /> Nuevo Episodio
-            </button>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button className="admin-btn-primary" onClick={() => {setFormData({ id: '', title: '', host: 'Berta Weyenberg', duration: '0:00', color: 'purple', art: '', audioUrl: '', audioFile: null, audioFileName: '', description: '' }); setEditingEp('new'); setActiveMenu('episodios');}} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '52px', fontSize: '16px' }}>
+                <Plus size={20} /> Nueva Entrevista
+              </button>
+              {onSyncSpotify && (
+                <button
+                  type="button"
+                  onClick={onSyncSpotify}
+                  disabled={isSyncingSpotify}
+                  className="admin-btn-primary"
+                  style={{ flex: 1, background: '#1DB954', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '52px', fontSize: '16px' }}
+                >
+                  <UploadCloud size={20} /> {isSyncingSpotify ? 'Sincronizando Spotify...' : 'Sincronizar con Spotify for Creators'}
+                </button>
+              )}
+            </div>
             <div style={{ background: '#FFFFFF', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Estado del Sistema</h3>
-              <p style={{ fontSize: '14px', color: '#4B5563' }}>Todo funcionando correctamente. Tu contenido se guarda en tu dispositivo local.</p>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px' }}>Estado de Spotify for Creators</h3>
+              <p style={{ fontSize: '14px', color: '#4B5563' }}>
+                Conectado al Show <strong>ConBERTAciones</strong> (ID: <code>1Kftb5HjEsEewOkHnpGsWW</code>). Los episodios largos se publican automáticamente en <strong>ConBERTAciones (Entrevistas)</strong> y las cápsulas bilingües en <strong>Under the Umbrella (Reflexiones)</strong>.
+              </p>
             </div>
           </div>
         )}
