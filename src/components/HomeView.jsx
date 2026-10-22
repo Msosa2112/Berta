@@ -255,9 +255,9 @@ const HomeView = ({
         {/* Card 7: Public Speaker (Span 4) */}
         <BentoCard
           Icon={Award}
-          name="Public Speaker"
-          description="Berta Weyenberg es conferencista internacional y panelista destacada."
-          cta="Ver trayectoria cívica"
+          name="Agenda una Charla"
+          description="Invita a Berta como conferencista para tu escuela, iglesia o empresa."
+          cta="Agendar charla con Berta"
           className="magic-bento-col-4"
           onClick={() => onNavigate('speaker')}
           background={
@@ -278,12 +278,16 @@ const HomeView = ({
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '6px', marginBottom: '14px', zIndex: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: 'var(--accent-amber)' }}>🏆</span>
-              <span>Premio MOSAIC de Impacto Social</span>
+              <span>🎓</span>
+              <span>Educación de estudiantes e hijos</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ color: 'var(--accent-amber)' }}>🏆</span>
-              <span>Premio WLKY Bell Humanitario</span>
+              <span>✨</span>
+              <span>Grupos de damas y grupos de fe</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>💼</span>
+              <span>Mensaje alentador para empresas</span>
             </div>
           </div>
         </BentoCard>

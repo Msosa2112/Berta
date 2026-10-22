@@ -298,7 +298,9 @@ const ConectaView = ({ profileSettings, triggerToast }) => {
                 style={{ background: 'var(--bg-space)', color: 'var(--text-primary)' }}
               >
                 <option value="general">Consulta General</option>
-                <option value="booking">Agendar Conferencia (Speaker)</option>
+                <option value="booking_educativa">Agendar Charla Educativa (Estudiantes y educación de hijos)</option>
+                <option value="booking_inspiracional">Agendar Charla Inspiracional (Grupos de damas de iglesia / Grupos de fe)</option>
+                <option value="booking_empresarial">Agendar Charla para Compañías (Mensaje alentador para empleados)</option>
                 <option value="sponsorship">Patrocinio / Promoción Negocios</option>
                 <option value="dame_letra">Dame La Letra (Pregunta/Historia)</option>
               </select>
